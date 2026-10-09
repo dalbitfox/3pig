@@ -1,0 +1,450 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐺 늑대 군단 10종 Sprite & 액션 애니메이션 프리뷰</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #18181b 100%);
+            color: #f8fafc;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 네비게이션 바 */
+        .nav-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-link {
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #475569;
+            border-radius: 999px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: #e11d48;
+            border-color: #fb7185;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #f43f5e;
+            text-shadow: 0 2px 14px rgba(244, 63, 94, 0.5);
+            margin-bottom: 6px;
+        }
+        .header p {
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+        .new-badge {
+            background: #10b981;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin-bottom: 30px;
+        }
+
+        .wolf-card {
+            background: rgba(30, 41, 59, 0.75);
+            border: 2px solid #334155;
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+        .wolf-card:hover {
+            transform: translateY(-3px);
+            border-color: #f43f5e;
+        }
+        .wolf-card.is-new {
+            border-color: #059669;
+        }
+        .wolf-card.is-new:hover {
+            border-color: #10b981;
+        }
+
+        .wolf-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+        }
+        .wolf-subtitle {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 14px;
+            text-align: center;
+            min-height: 32px;
+            line-height: 1.35;
+        }
+
+        .viewport-box {
+            width: 180px;
+            height: 180px;
+            background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+            border: 2px solid #475569;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 14px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .action-btn {
+            background: #334155;
+            color: #f1f5f9;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .action-btn:hover {
+            background: #475569;
+            border-color: #94a3b8;
+        }
+        .action-btn.active {
+            background: #e11d48;
+            border-color: #fb7185;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
+        }
+
+        .sheet-toggle-btn {
+            margin-top: 10px;
+            background: transparent;
+            color: #38bdf8;
+            border: 1px dashed #0284c7;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .sheet-toggle-btn:hover {
+            background: rgba(2, 132, 199, 0.15);
+        }
+
+        .sheet-viewer {
+            display: none;
+            margin-top: 12px;
+            max-width: 100%;
+            overflow-x: auto;
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .sheet-viewer.show {
+            display: block;
+        }
+        .sheet-viewer canvas {
+            max-width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 링크 네비게이션 -->
+    <div class="nav-bar">
+        <a href="index.html" class="nav-link">🎮 인게임 플레이</a>
+        <a href="skills_preview.html" class="nav-link">✨ 스킬 & 전투 샌드박스 프리뷰</a>
+        <a href="wolf_sprites_preview.html" class="nav-link active">🐺 늑대 군단 10종 프리뷰</a>
+        <a href="pig_sprites_preview.html" class="nav-link">🐷 삼형제 스프라이트 프리뷰</a>
+        <a href="fairytale_stage_backgrounds_showcase.html" class="nav-link">🏰 신축 주택 & 스테이지 프리뷰</a>
+    </div>
+
+    <div class="header">
+        <h1>🐺 늑대 군단 10종 Sprite & 액션 애니메이션 뷰어</h1>
+        <p>신규 추가된 공중/지상 늑대 3종(양철 방패, 우산 공수, 미니 태엽 로봇)을 포함한 전 늑대 10종의 액션 프레임을 실시간으로 감상하세요.</p>
+    </div>
+
+    <!-- 🌟 신규 늑대 3종 비주얼 일러스트 쇼케이스 배너 -->
+    <div class="new-wolves-banner" style="max-width: 1400px; width: 100%; margin-bottom: 24px; background: rgba(30, 41, 59, 0.85); border: 2px solid #10b981; border-radius: 18px; padding: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">✨</span>
+                <h2 style="font-size: 18px; color: #34d399; font-weight: bold;">신규 늑대 3종 공식 비주얼 일러스트 & 캐릭터 콘셉트</h2>
+                <span style="background: #059669; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px;">NEW 3종 확정</span>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8;">
+                양철방패 늑대 · 우산공수 늑대 · 미니 태엽 로봇 늑대 (100% 아동 친화 토이 콘셉트)
+            </div>
+        </div>
+        <div style="border-radius: 12px; overflow: hidden; border: 1px solid #334155; margin-bottom: 14px;">
+            <img src="assets/wolves_trio_showcase.jpg" alt="신규 늑대 3종 쇼케이스" style="width: 100%; height: auto; display: block; object-fit: cover;">
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <div style="display: flex; gap: 12px; background: rgba(15, 23, 42, 0.6); padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; align-items: center;">
+                <img src="assets/wolf_shield.png" style="width: 58px; height: 58px; object-fit: contain; border-radius: 8px; background: #fff;">
+                <div>
+                    <div style="font-size: 14px; font-weight: bold; color: #fbbf24;">1. 양철방패 늑대</div>
+                    <div style="font-size: 11px; color: #cbd5e1;">냄비 투구 & 고철 리벳 골판 방패를 앞세운 지상 돌격병</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; background: rgba(15, 23, 42, 0.6); padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; align-items: center;">
+                <img src="assets/wolf_umbrella.png" style="width: 58px; height: 58px; object-fit: contain; border-radius: 8px; background: #fff;">
+                <div>
+                    <div style="font-size: 14px; font-weight: bold; color: #f43f5e;">2. 우산공수 늑대</div>
+                    <div style="font-size: 11px; color: #cbd5e1;">레트로 비행모 & 스트라이프 우산 활강 + 미니 로봇 수송</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; background: rgba(15, 23, 42, 0.6); padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; align-items: center;">
+                <img src="assets/wolf_miniwolf.png" style="width: 58px; height: 58px; object-fit: contain; border-radius: 8px; background: #fff;">
+                <div>
+                    <div style="font-size: 14px; font-weight: bold; color: #38bdf8;">3. 미니 태엽 로봇 늑대</div>
+                    <div style="font-size: 11px; color: #cbd5e1;">황동 태엽 키 & LED 눈망울의 귀여운 양철 장난감 로봇</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="showcase-grid" id="showcase-grid"></div>
+
+    <script src="constants.js"></script>
+    <script src="audio.js"></script>
+    <script src="wolf_sprites.js"></script>
+    <script src="enemies.js"></script>
+    <script>
+        const grid = document.getElementById('showcase-grid');
+        const wolves = [
+            { type: 'normal', title: '1. 일반 늑대 (Normal)', subtitle: '사족보행 전력 질주 & 턱 물어뜯기', w: 140, h: 90 },
+            { type: 'skater', title: '2. 스케이트 늑대 (Skater)', subtitle: '킥푸시 우드 데크 크루징 & 팝 점프', w: 125, h: 125 },
+            { type: 'granny', title: '3. 할머니 늑대 (Granny)', subtitle: '바구니 든 손인사 & 변장 찢고 무섭게 달려드는 야수 늑대', w: 135, h: 120 },
+            { type: 'balloon', title: '4. 풍선 폭격수 (Balloon)', subtitle: '풍선 비행 폭격 & 풍선 격추 시 성체 규격 확대 & 다이너마이트 폭탄마 돌격', w: 135, h: 160 },
+            { type: 'blower', title: '5. 바람 늑대 (Blower)', subtitle: '화면 60% 지점 정지 & 입에서 뻗어나가는 나선형 제트 돌풍 & 거대 회오리탄 발사', w: 155, h: 115 },
+            { type: 'midboss', title: '6. 중간보스 돌격대장 (MidBoss)', subtitle: '지면 강타 도약 돌진 & 2연속 회전 쌍도끼 일제 투척', w: 160, h: 150 },
+            { type: 'boss', title: '7. 빅 배드 울프 제왕 (Boss)', subtitle: '1.2초 충전형 파괴 레이저(집중 사격 캔슬) & 거대 화염 마그마 운석 투척', w: 180, h: 180 },
+            { type: 'shield', isNew: true, title: '8. 양철 방패 늑대 (Shield)', subtitle: '양철 냄비 헬멧 & 전면 대형 방패 도탄(방패 내구도 95) & 방패 박살 본체 노출', w: 140, h: 135, custom: true },
+            { type: 'umbrella', isNew: true, title: '9. 우산 공수 늑대 (Umbrella)', subtitle: '스트라이프 우산 공중 활강 비행 & 미니 로봇 투하 & 피격 시 우산 뒤집힘 추락', w: 140, h: 175, custom: true },
+            { type: 'miniwolf', isNew: true, title: '10. 미니 태엽 로봇 늑대 (Mini Robo-Wolf)', subtitle: '황동 태엽 & 귀여운 LED 눈망울 & 미니 낙하산 강하 & 양철 발 종종걸음 질주', w: 90, h: 90, custom: true }
+        ];
+
+        const animators = {};
+        const customEntities = {};
+        const viewCanvases = {};
+
+        // 목업 게임 객체 (커스텀 늑대 렌더링에 필요한 파티클/하우스/텍스트 버퍼)
+        const mockGame = {
+            particles: [],
+            floatingTexts: [],
+            house: { x: 0, y: 0, w: 100, hp: 100 }
+        };
+
+        wolves.forEach(w => {
+            const card = document.createElement('div');
+            card.className = 'wolf-card' + (w.isNew ? ' is-new' : '');
+
+            const title = document.createElement('div');
+            title.className = 'wolf-title';
+            title.innerHTML = w.title + (w.isNew ? '<span class="new-badge">NEW 신규</span>' : '');
+
+            const subtitle = document.createElement('div');
+            subtitle.className = 'wolf-subtitle';
+            subtitle.textContent = w.subtitle;
+
+            const viewportBox = document.createElement('div');
+            viewportBox.className = 'viewport-box';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            viewportBox.appendChild(canvas);
+            viewCanvases[w.type] = canvas;
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group';
+
+            if (!w.custom) {
+                // 스프라이트 시트 기반 늑대 (1~7)
+                const animator = new window.WolfSpriteSystem.WolfAnimator(w.type);
+                animators[w.type] = animator;
+
+                const cfg = window.WolfSpriteSystem.WOLF_CONFIGS[w.type];
+                Object.keys(cfg.actions).forEach(actionName => {
+                    const btn = document.createElement('button');
+                    btn.className = 'action-btn' + (actionName === animator.currentAction ? ' active' : '');
+                    btn.textContent = actionName;
+                    btn.onclick = () => {
+                        animator.playAction(actionName, true, null, null, true);
+                        btnGroup.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                    btnGroup.appendChild(btn);
+                });
+
+                // 스프라이트 시트 원본 보기 토글
+                const sheetToggle = document.createElement('button');
+                sheetToggle.className = 'sheet-toggle-btn';
+                sheetToggle.textContent = '🖼️ 전체 Sprite Sheet 원본 보기';
+
+                const sheetViewer = document.createElement('div');
+                sheetViewer.className = 'sheet-viewer';
+
+                sheetToggle.onclick = () => {
+                    const isShowing = sheetViewer.classList.toggle('show');
+                    if (isShowing && !sheetViewer.hasChildNodes()) {
+                        const rawCanvas = window.WolfSpriteSystem.generator.getCanvas(w.type);
+                        sheetViewer.appendChild(rawCanvas);
+                    }
+                };
+
+                card.appendChild(title);
+                card.appendChild(subtitle);
+                card.appendChild(viewportBox);
+                card.appendChild(btnGroup);
+                card.appendChild(sheetToggle);
+                card.appendChild(sheetViewer);
+            } else {
+                // 신규 늑대 3종 (8: Shield, 9: Umbrella, 10: Mini)
+                let ent;
+                let actions = [];
+
+                if (w.type === 'shield') {
+                    ent = new window.ShieldWolf(100, 140);
+                    actions = [
+                        { name: '🛡️ 방패 장착 (도탄)', fn: (e) => { e.hasShield = true; e.shieldHp = 95; } },
+                        { name: '💥 방패 박살 (본체 노출)', fn: (e) => { e.hasShield = false; e.shieldHp = 0; } }
+                    ];
+                } else if (w.type === 'umbrella') {
+                    ent = new window.UmbrellaWolf(100, 140);
+                    actions = [
+                        { name: '☂️ 우산 활강 비행', fn: (e) => { e.isFlying = true; e.isFalling = false; e.umbrellaInverted = false; } },
+                        { name: '💥 우산 뒤집힘 추락', fn: (e) => { e.isFlying = false; e.isFalling = true; e.umbrellaInverted = true; } },
+                        { name: '🏃 지상 몽둥이 돌격', fn: (e) => { e.isFlying = false; e.isFalling = false; e.umbrellaInverted = true; } }
+                    ];
+                } else if (w.type === 'miniwolf') {
+                    ent = new window.MiniWolf(100, 140, true);
+                    actions = [
+                        { name: '🪂 낙하산 강하', fn: (e) => { e.hasParachute = true; e.isLanding = true; } },
+                        { name: '🐾 착지 질주', fn: (e) => { e.hasParachute = false; e.isLanding = false; } }
+                    ];
+                }
+
+                customEntities[w.type] = ent;
+
+                actions.forEach((act, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'action-btn' + (idx === 0 ? ' active' : '');
+                    btn.textContent = act.name;
+                    btn.onclick = () => {
+                        act.fn(ent);
+                        btnGroup.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                    btnGroup.appendChild(btn);
+                });
+
+                card.appendChild(title);
+                card.appendChild(subtitle);
+                card.appendChild(viewportBox);
+                card.appendChild(btnGroup);
+            }
+
+            grid.appendChild(card);
+        });
+
+        // 렌더링 루프
+        let lastTime = performance.now();
+        function loop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            wolves.forEach(w => {
+                const cv = viewCanvases[w.type];
+                const ctx = cv.getContext('2d');
+                ctx.clearRect(0, 0, cv.width, cv.height);
+
+                if (!w.custom) {
+                    const anim = animators[w.type];
+                    anim.update(dt);
+                    anim.draw(ctx, cv.width / 2, cv.height / 2, w.w, w.h);
+                } else {
+                    const ent = customEntities[w.type];
+                    ent.animTimer = (ent.animTimer || 0) + dt * 4;
+                    ent.glidePhase = (ent.glidePhase || 0) + dt * 3;
+
+                    ctx.save();
+                    // 캔버스 중심에 맞추기 위한 로컬 오프셋
+                    if (w.type === 'shield') {
+                        ent.x = 100;
+                        ent.y = 150;
+                        ent.draw(ctx, mockGame);
+                    } else if (w.type === 'umbrella') {
+                        ent.x = 100;
+                        ent.y = ent.isFlying ? 155 : 150;
+                        ent.draw(ctx, mockGame);
+                    } else if (w.type === 'miniwolf') {
+                        ent.x = 100;
+                        ent.y = 135;
+                        ent.draw(ctx, mockGame);
+                    }
+                    ctx.restore();
+                }
+            });
+
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐷 아기돼지 삼형제 Sprite Sheet 프레임 애니메이션 프리뷰</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1b18 0%, #2d241e 100%);
+            color: #f5f5f5;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #ffd54f;
+            text-shadow: 0 2px 10px rgba(255, 213, 79, 0.4);
+            margin-bottom: 6px;
+        }
+        .header p {
+            font-size: 14px;
+            color: #d7ccc8;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .showcase-grid { grid-template-columns: 1fr; }
+        }
+
+        .pig-card {
+            background: rgba(43, 34, 28, 0.85);
+            border: 2px solid #5d4037;
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+
+        .pig-card.pig1 { border-color: #ff9800; }
+        .pig-card.pig2 { border-color: #ff4081; }
+        .pig-card.pig3 { border-color: #4caf50; }
+
+        .pig-title-badge {
+            font-size: 17px;
+            font-weight: 900;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+            display: inline-block;
+        }
+        .pig1 .pig-title-badge { background: #fff3e0; color: #e65100; border: 1.5px solid #ff9800; }
+        .pig2 .pig-title-badge { background: #fce4ec; color: #c2185b; border: 1.5px solid #ff4081; }
+        .pig3 .pig-title-badge { background: #e8f5e9; color: #1b5e20; border: 1.5px solid #4caf50; }
+
+        .canvas-stage {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, #3e2723 0%, #1a120b 80%);
+            border-radius: 20px;
+            border: 2px dashed rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        canvas.anim-canvas {
+            image-rendering: auto;
+        }
+
+        .action-info {
+            font-size: 13px;
+            color: #ffecb3;
+            margin-bottom: 12px;
+            min-height: 20px;
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .action-btn {
+            background: #4e342e;
+            color: #fff;
+            border: 1.5px solid #8d6e63;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+        .action-btn.active {
+            background: #ff9800;
+            border-color: #ffd54f;
+            color: #000;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+        }
+
+        .speed-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid #5d4037;
+            margin-bottom: 24px;
+        }
+        .speed-btn {
+            background: #3e2723;
+            color: #d7ccc8;
+            border: 1px solid #795548;
+            padding: 6px 14px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .speed-btn.active {
+            background: #ffd54f;
+            color: #3e2723;
+            border-color: #ffca28;
+        }
+
+        .sheet-section {
+            width: 100%;
+            max-width: 1100px;
+            background: rgba(30, 24, 20, 0.9);
+            border: 2px solid #5d4037;
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+        }
+        .sheet-section h2 {
+            font-size: 20px;
+            color: #ffd54f;
+            margin-bottom: 14px;
+        }
+        .sheet-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .sheet-box {
+            background: #111;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: left;
+        }
+        .sheet-box-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffb74d;
+            margin-bottom: 8px;
+        }
+        .sheet-canvas-preview {
+            max-width: 100%;
+            border: 1px solid #333;
+            background: repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 16px 16px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 링크 네비게이션 -->
+    <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; z-index: 100;">
+        <a href="index.html" style="padding: 8px 16px; background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; border-radius: 999px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600;">🎮 인게임 플레이</a>
+        <a href="skills_preview.html" style="padding: 8px 16px; background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; border-radius: 999px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600;">✨ 스킬 & 전투 샌드박스 프리뷰</a>
+        <a href="wolf_sprites_preview.html" style="padding: 8px 16px; background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; border-radius: 999px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600;">🐺 늑대 군단 10종 프리뷰</a>
+        <a href="pig_sprites_preview.html" style="padding: 8px 16px; background: #ea580c; border: 1px solid #fb923c; border-radius: 999px; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 600;">🐷 삼형제 모션 프리뷰</a>
+        <a href="fairytale_stage_backgrounds_showcase.html" style="padding: 8px 16px; background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; border-radius: 999px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600;">🏰 신축 주택 & 스테이지 프리뷰</a>
+    </div>
+
+    <div class="header">
+        <h1>🐷 아기돼지 삼형제 고유 기능 Sprite Sheet 애니메이션</h1>
+        <p>프레임 애니메이션 코드로 정밀 구현된 돼지 삼형제의 고유 스킬 모션을 직접 확인하세요!</p>
+    </div>
+
+    <!-- 속도 조절 바 -->
+    <div class="speed-bar">
+        <span>⏱️ 재생 속도:</span>
+        <button class="speed-btn" onclick="setSpeed(0.5)">0.5x 슬로우</button>
+        <button class="speed-btn active" onclick="setSpeed(1.0)">1.0x 표준</button>
+        <button class="speed-btn" onclick="setSpeed(1.5)">1.5x 고속</button>
+    </div>
+
+    <!-- 3인 쇼케이스 그리드 -->
+    <div class="showcase-grid">
+
+        <!-- 1층 첫째 돼지 -->
+        <div class="pig-card pig1">
+            <div class="pig-title-badge">🌾 첫째 돼지 (짚의 명인 · 1층)</div>
+            <div class="canvas-stage">
+                <canvas id="canvas-pig-1" class="anim-canvas" width="160" height="160"></canvas>
+            </div>
+            <div id="status-pig-1" class="action-info">현재: 기본 대기 (idle)</div>
+            <div class="btn-group">
+                <button class="action-btn" onclick="triggerAction(1, 'idle')">💤 기본 대기 (idle)</button>
+                <button class="action-btn active" onclick="triggerAction(1, 'roll_straw')">🌾 짚다발 굴리기 (roll_straw)</button>
+            </div>
+        </div>
+
+        <!-- 2층 둘째 돼지 -->
+        <div class="pig-card pig2">
+            <div class="pig-title-badge">🌰 둘째 돼지 (도토리 명사수 · 2층)</div>
+            <div class="canvas-stage">
+                <canvas id="canvas-pig-2" class="anim-canvas" width="160" height="160"></canvas>
+            </div>
+            <div id="status-pig-2" class="action-info">현재: 기본 대기 (idle)</div>
+            <div class="btn-group">
+                <button class="action-btn" onclick="triggerAction(2, 'idle')">💤 기본 대기 (idle)</button>
+                <button class="action-btn active" onclick="triggerAction(2, 'slingshot_shoot')">🎯 새총 당겼다 놓기 (shoot)</button>
+                <button class="action-btn" onclick="triggerAction(2, 'bomb_throw')">🧨 폭탄/폭죽 던지기 (bomb)</button>
+            </div>
+        </div>
+
+        <!-- 3층 셋째 돼지 -->
+        <div class="pig-card pig3">
+            <div class="pig-title-badge">🧱 셋째 돼지 (벽돌 마스터 · 3층)</div>
+            <div class="canvas-stage">
+                <canvas id="canvas-pig-3" class="anim-canvas" width="160" height="160"></canvas>
+            </div>
+            <div id="status-pig-3" class="action-info">현재: 기본 대기 (idle)</div>
+            <div class="btn-group">
+                <button class="action-btn" onclick="triggerAction(3, 'idle')">💤 기본 대기 (idle)</button>
+                <button class="action-btn active" onclick="triggerAction(3, 'hammer_repair')">🔨 망치 집 수리 (repair)</button>
+                <button class="action-btn" onclick="triggerAction(3, 'shield_block')">🛡️ 방패 막기 & 성벽 (block)</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 베이킹된 실제 Sprite Sheet 뷰어 -->
+    <div class="sheet-section">
+        <h2>📜 베이킹된 실제 Sprite Sheet 원본 뷰</h2>
+        <div class="sheet-container">
+            <div class="sheet-box">
+                <div class="sheet-box-title">🐷 첫째 돼지 Sprite Sheet (1024 x 256) - Row 0: Idle, Row 1: Roll Straw</div>
+                <canvas id="sheet-preview-1" class="sheet-canvas-preview"></canvas>
+            </div>
+            <div class="sheet-box">
+                <div class="sheet-box-title">🐷 둘째 돼지 Sprite Sheet (1024 x 384) - Row 0: Idle, Row 1: Slingshot Shoot, Row 2: Bomb Throw</div>
+                <canvas id="sheet-preview-2" class="sheet-canvas-preview"></canvas>
+            </div>
+            <div class="sheet-box">
+                <div class="sheet-box-title">🐷 셋째 돼지 Sprite Sheet (1024 x 384) - Row 0: Idle, Row 1: Hammer Repair, Row 2: Shield Block</div>
+                <canvas id="sheet-preview-3" class="sheet-canvas-preview"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="pig_sprites.js"></script>
+    <script>
+        let animSpeed = 1.0;
+        const animators = {};
+        const stages = {};
+
+        function initPreview() {
+            for (let id = 1; id <= 3; id++) {
+                animators[id] = new PigSpriteSystem.PigAnimator(id);
+                const c = document.getElementById(`canvas-pig-${id}`);
+                stages[id] = { canvas: c, ctx: c.getContext('2d') };
+            }
+
+            // 루프 시작
+            let lastT = performance.now();
+            function loop(now) {
+                const dt = (now - lastT) / 1000;
+                lastT = now;
+
+                for (let id = 1; id <= 3; id++) {
+                    const anim = animators[id];
+                    anim.update(dt * animSpeed);
+
+                    const st = stages[id];
+                    st.ctx.clearRect(0, 0, st.canvas.width, st.canvas.height);
+
+                    // 발 밑 그림자
+                    st.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    st.ctx.beginPath();
+                    st.ctx.ellipse(80, 130, 36, 10, 0, 0, Math.PI * 2);
+                    st.ctx.fill();
+
+                    // 스프라이트 시트 렌더링
+                    anim.draw(st.ctx, 80, 80, 110, 110);
+
+                    // 상태 텍스트
+                    const actName = anim.getCurrentAction();
+                    const frame = anim.frameIndex;
+                    const maxF = anim.config.actions[actName].frameCount;
+                    document.getElementById(`status-pig-${id}`).innerText = 
+                        `액션: [${actName}] 프레임: ${frame + 1} / ${maxF}`;
+                }
+
+                requestAnimationFrame(loop);
+            }
+            requestAnimationFrame(loop);
+
+            // 시트 미리보기 복사
+            setTimeout(updateSheetPreviews, 300);
+        }
+
+        function triggerAction(id, actionName) {
+            animators[id].playAction(actionName, true);
+        }
+
+        function setSpeed(sp) {
+            animSpeed = sp;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.includes(`${sp}x`));
+            });
+        }
+
+        function updateSheetPreviews() {
+            for (let id = 1; id <= 3; id++) {
+                const sheetCanvas = PigSpriteSystem.generator.getCanvas(id);
+                const prev = document.getElementById(`sheet-preview-${id}`);
+                prev.width = sheetCanvas.width;
+                prev.height = sheetCanvas.height;
+                const pCtx = prev.getContext('2d');
+                pCtx.drawImage(sheetCanvas, 0, 0);
+            }
+        }
+
+        window.addEventListener('load', initPreview);
+    </script>
+</body>
+</html>
+

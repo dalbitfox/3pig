@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>아기돼지 삼형제의 철통방어 (Three Little Pigs: Home Defense)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="game-container">
+    <!-- 모바일 세로모드 시 가로 회전 안내 배너 -->
+    <div id="mobile-rotate-notice" class="mobile-rotate-notice hidden">
+        <span class="rotate-notice-text">📱 스마트폰을 <strong>가로 모드</strong>로 돌리시면 게임 화면이 훨씬 시원해집니다!</span>
+        <button id="banner-landscape-btn" class="banner-rotate-btn" type="button">🔄 가로 전환</button>
+    </div>
+
+    <!-- 게임 캔버스 -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 보스 대형 상단 체력바 -->
+    <div id="boss-hud-container" class="boss-hud-container hidden">
+        <div class="boss-hud-title">👑 힙스터 빅 배드 울프 제왕</div>
+        <div class="boss-hud-bar-bg">
+            <div id="boss-hud-bar-fill" class="boss-hud-bar-fill"></div>
+        </div>
+        <div id="boss-hud-hp-text" class="boss-hud-hp-text">100%</div>
+    </div>
+
+    <!-- 상단 HUD -->
+    <div id="top-hud">
+        <!-- 집 체력 -->
+        <div class="hud-panel health-container">
+            <div class="health-label">
+                <span>🏡 내구도</span>
+                <span id="house-hp-text">150 / 150 (따뜻한 짚집)</span>
+            </div>
+            <div class="health-bar-bg">
+                <div id="house-hp-fill" class="health-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- 골드 & 웨이브 & 난이도 -->
+        <div class="hud-panel">
+            <div id="diff-badge" class="diff-badge-pill diff-badge-easy">🟢 쉬움</div>
+            <div id="user-title-badge" class="user-title-pill hidden"></div>
+            <div class="gold-badge">
+                🪙 <span id="gold-display">50</span>G
+                <span id="gold-bonus-badge" class="gold-bonus-pill hidden">+0%</span>
+            </div>
+            <div class="wave-badge">
+                🚩 <span id="wave-display">WAVE 1/10</span>
+                <span id="stage-theme-display" class="stage-theme-badge">☀️ 화창한 동화 초원</span>
+                <span id="stat-awakening-badge" class="stat-awakening-badge hidden" title="스탯 ALL MAX 각성! 5초 주기 50% 확률로 천벌의 벼락 자동 강타">⚡ 요새 신성 각성</span>
+            </div>
+        </div>
+
+        <!-- 제어 버튼 (상점 & 사운드 & 전체화면 & 일시정지 & 터보 자동 연사) -->
+        <div class="hud-panel hud-controls">
+            <button id="turbo-btn" class="hud-btn turbo-hud-btn" title="도토리 연속 발사 터보 모드 [단축키: T 또는 스페이스바]" type="button">⚡ 터보 OFF</button>
+            <button id="hud-landscape-btn" class="hud-btn landscape-hud-btn" title="가로모드 화면전환">🔄 가로</button>
+            <button id="pause-btn" class="hud-btn" title="일시정지 [P]">⏸️</button>
+            <button id="shop-btn" class="hud-btn">🔨 상점 [U]</button>
+            <button id="fullscreen-btn" class="hud-btn" title="전체화면 [F]">⛶</button>
+            <button id="bgm-btn" class="hud-btn bgm-hud-btn" type="button" aria-label="배경음악 끄기" aria-pressed="true" title="배경음악 켜기/끄기">🎵 BGM ON</button>
+            <button id="sound-btn" class="hud-btn" type="button" aria-label="전체 사운드 켜기/끄기">🔊</button>
+        </div>
+    </div>
+
+    <!-- 하단 삼형제 스킬 핫바 -->
+    <div id="skills-hotbar">
+        <div id="skill-1" class="skill-slot">
+            <span class="skill-key">1</span>
+            <div class="skill-icon">🌾</div>
+            <div id="skill-1-name" class="skill-name">짚단 굴리기</div>
+            <span id="skill-1-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+            <div class="skill-overlay"></div>
+            <div class="skill-timer">0.0</div>
+        </div>
+
+        <div id="skill-2" class="skill-slot">
+            <span class="skill-key">2</span>
+            <div class="skill-icon">🌰</div>
+            <div id="skill-2-name" class="skill-name">도토리 폭격</div>
+            <span id="skill-2-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+            <div class="skill-overlay"></div>
+            <div class="skill-timer">0.0</div>
+        </div>
+
+        <div id="skill-3" class="skill-slot">
+            <span class="skill-key">3</span>
+            <div class="skill-icon">🧱</div>
+            <div id="skill-3-name" class="skill-name">수리 & 끓는 솥</div>
+            <span id="skill-3-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+            <div class="skill-overlay"></div>
+            <div class="skill-timer">0.0</div>
+        </div>
+
+        <div id="skill-4" class="skill-slot ultimate-slot hidden">
+            <span class="skill-key">4</span>
+            <div class="skill-icon">🌪️</div>
+            <div id="skill-4-name" class="skill-name">천지개벽 대회오리</div>
+            <div class="skill-overlay"></div>
+            <div class="skill-timer">0.0</div>
+        </div>
+    </div>
+
+    <!-- ⚡ 도토리 자동 연사 퀵 터보 플로팅 버튼 (모바일/PC 어디서나 원클릭 토글) -->
+    <button id="quick-turbo-btn" class="quick-turbo-btn" title="도토리 연속 발사 터보 모드 [단축키: T 또는 스페이스바]" type="button">
+        <span class="turbo-icon">⚡</span>
+        <span class="turbo-label">터보 OFF</span>
+    </button>
+
+    <!-- 1. 시작 모달 -->
+    <div id="start-modal" class="modal-overlay active">
+        <div class="modal-card start-modal-card">
+            <h1 class="modal-title" style="margin-bottom: 2px;">🐷 아기돼지 삼형제의 철통방어 🐺</h1>
+
+            <!-- 상단 탭 네비게이션 -->
+            <div class="start-tabs">
+                <button id="tab-start-play-btn" class="start-tab-btn active">🎮 게임 시작 & 조작키</button>
+                <button id="tab-start-pigs-btn" class="start-tab-btn">🐷 삼형제 스킬 도감</button>
+                <button id="tab-start-meta-btn" class="start-tab-btn">🪙 영구 연구소 & 궁극기</button>
+            </div>
+
+            <!-- ================= [탭 1: 첫 화면 - 게임 시작 & 조작키 (세로 스크롤바 없음!)] ================= -->
+            <div id="tab-start-play-content">
+                <p class="splash-desc-compact">
+                    늑대 군단의 습격에 맞서 집을 <strong>초가집 ➔ 나무집 ➔ 벽돌집</strong>으로 진화시키고,<br>
+                    <strong>아기돼지 삼형제(1단계 초가집 합동 수호 ➔ 2단계부터 1층 셋째 · 2층 둘째 · 3층 첫째)</strong>를 승급하여 성을 수호하세요!
+                </p>
+
+                <!-- 모바일 가로모드 화면전환 버튼 배너 -->
+                <div class="mobile-landscape-banner">
+                    <button id="start-landscape-btn" class="landscape-action-btn" type="button">
+                        <span class="btn-rotate-icon">🔄</span>
+                        <span class="btn-rotate-title">가로 모드로 화면 전환</span>
+                        <span class="btn-rotate-sub">📱 16:9 쾌적 플레이</span>
+                    </button>
+                </div>
+
+                <!-- 난이도 선택 그리드 -->
+                <div class="diff-select-box-compact">
+                    <div class="diff-select-title-compact">🎯 난이도 선택 (원하는 난이도를 클릭하세요)</div>
+                    <div class="diff-grid-compact">
+                        <div class="diff-card active" data-diff="easy" id="diff-card-easy">
+                            <div class="diff-check-badge">
+                                <div class="badge-icon-circle">
+                                    <svg class="badge-check-svg" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="badge-text">선택</span>
+                            </div>
+                            <img class="diff-card-img" src="assets/diff_easy.jpg" alt="쉬움 난이도">
+                            <div class="diff-card-info">
+                                <div class="diff-card-name">🟢 쉬움 (Easy)</div>
+                                <div class="diff-card-badges">
+                                    <span class="diff-badge green">💰 시작 120G</span>
+                                    <span class="diff-badge">🐾 기본 늑대</span>
+                                </div>
+                                <div class="diff-card-desc">초심자 추천 · 5단계 중간보스 출현</div>
+                            </div>
+                        </div>
+                        <div class="diff-card" data-diff="normal" id="diff-card-normal">
+                            <div class="diff-check-badge">
+                                <div class="badge-icon-circle">
+                                    <svg class="badge-check-svg" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="badge-text">선택</span>
+                            </div>
+                            <img class="diff-card-img" src="assets/diff_normal.jpg" alt="보통 난이도">
+                            <div class="diff-card-info">
+                                <div class="diff-card-name">🟡 보통 (Normal)</div>
+                                <div class="diff-card-badges">
+                                    <span class="diff-badge amber">💰 시작 60G</span>
+                                    <span class="diff-badge">🐺 정예 늑대</span>
+                                </div>
+                                <div class="diff-card-desc">표준 밸런스 · 5단계 중간보스 & 10단계 제왕</div>
+                            </div>
+                        </div>
+                        <div class="diff-card" data-diff="hard" id="diff-card-hard">
+                            <div class="diff-check-badge">
+                                <div class="badge-icon-circle">
+                                    <svg class="badge-check-svg" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="badge-text">선택</span>
+                            </div>
+                            <img class="diff-card-img" src="assets/diff_hard.jpg" alt="어려움 난이도">
+                            <div class="diff-card-info">
+                                <div class="diff-card-name">🔴 어려움 (Hard)</div>
+                                <div class="diff-card-badges">
+                                    <span class="diff-badge red">💰 시작 30G</span>
+                                    <span class="diff-badge red">⚡ 늑대 이속 1.2배</span>
+                                </div>
+                                <div class="diff-card-desc">숙련자용 · 5단계 중간보스 & 제왕 습격</div>
+                            </div>
+                        </div>
+                        <div class="diff-card special-diff" data-diff="endless" id="diff-card-endless">
+                            <div class="diff-check-badge">
+                                <div class="badge-icon-circle">
+                                    <svg class="badge-check-svg" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="badge-text">선택</span>
+                            </div>
+                            <img class="diff-card-img" src="assets/diff_endless.jpg" alt="무한 서바이벌">
+                            <div class="diff-card-info">
+                                <div class="diff-card-name">🔥 무한 모드 (Endless)</div>
+                                <div class="diff-card-badges">
+                                    <span class="diff-badge purple">♾️ 끝없는 웨이브</span>
+                                    <span class="diff-badge purple">🏆 랭킹 도전</span>
+                                </div>
+                                <div class="diff-card-desc">10단계마다 진화 보스 · 100단계 종말신</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 조작 버튼 설명 (한눈에 들어오는 컴팩트 가이드) -->
+                <div class="controls-guide-compact">
+                    <div class="ctrl-item">
+                        <span class="ctrl-key">🖱️ 마우스 좌클릭</span>
+                        <span class="ctrl-desc">조준 탄환 사격 (수동)</span>
+                    </div>
+                    <div class="ctrl-item">
+                        <span class="ctrl-key">⚡ [T] / [Space]</span>
+                        <span class="ctrl-desc">터보 모드 (연속 자동 발사)</span>
+                    </div>
+                    <div class="ctrl-item">
+                        <span class="ctrl-key">🔢 [1][2][3][4] 키</span>
+                        <span class="ctrl-desc">짚단 / 도토리 / 수리 / 궁극기</span>
+                    </div>
+                    <div class="ctrl-item">
+                        <span class="ctrl-key">🛒 [U] 상점 · ⏸️ [P] 정지</span>
+                        <span class="ctrl-desc">집 개축 & 승급 · [F] 전체화면</span>
+                    </div>
+                </div>
+
+                <!-- 에셋 사전 로딩 진행바 -->
+                <div id="asset-preload-container" class="asset-preload-container">
+                    <div class="preload-label">
+                        <span id="preload-status-text">🐷 아기돼지 삼형제가 동화마을을 준비하는 중...</span>
+                        <span id="preload-percent-text">0%</span>
+                    </div>
+                    <div class="preload-bar-bg">
+                        <div id="preload-bar-fill" class="preload-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 게임 시작 버튼 (첫 화면 하단에 바로 노출) -->
+                <button id="start-btn" class="primary-btn start-play-btn" disabled>동화마을 준비 중... ⏳</button>
+
+                <!-- 프리뷰 & 샌드박스 바로가기 바 -->
+                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap;">
+                    <a href="skills_preview.html" target="_blank" style="padding: 6px 12px; background: #1e3a8a; border: 1px solid #3b82f6; border-radius: 999px; color: #93c5fd; font-size: 12px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">✨ 스킬 & 전투 샌드박스</a>
+                    <a href="wolf_sprites_preview.html" target="_blank" style="padding: 6px 12px; background: #881337; border: 1px solid #f43f5e; border-radius: 999px; color: #fecdd3; font-size: 12px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">🐺 늑대 군단 10종 프리뷰</a>
+                    <a href="pig_sprites_preview.html" target="_blank" style="padding: 6px 12px; background: #78350f; border: 1px solid #f59e0b; border-radius: 999px; color: #fde68a; font-size: 12px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">🐷 삼형제 모션 프리뷰</a>
+                </div>
+            </div>
+
+            <!-- ================= [탭 2: 삼형제 스킬 도감] ================= -->
+            <div id="tab-start-pigs-content" class="hidden">
+                <div class="menu-pigs-spec-box" style="margin-top: 4px;">
+                    <div class="menu-section-title" style="margin-bottom: 8px;">🐷 아기돼지 삼형제 층별 배치 및 스킬 도감</div>
+                    <div class="menu-pigs-grid">
+                        <div class="menu-pig-card">
+                            <img src="assets/pig1.png" alt="첫째 돼지" style="width: 72px; height: 72px; border-radius: 16px; object-fit: contain; background: #fff8e1; border: 2.5px solid #ff9800; box-shadow: 0 3px 8px rgba(0,0,0,0.15); flex-shrink: 0; padding: 4px;">
+                            <div class="menu-pig-info">
+                                <div class="menu-pig-name">첫째 돼지 (짚의 명인 · 3층 옥상 / 1단계 1층)</div>
+                                <div class="menu-pig-ranks">
+                                    <div>★1성: 거대 짚단 굴리기 (넉백 & 감속)</div>
+                                    <div>★2성: 🔥 불타는 짚단 (관통 화염 + 넉백 1.5배)</div>
+                                    <div>★3성: 👑 황금 태풍 짚단 2연타 (화면 전원 넉백)</div>
+                                    <div style="color: #d97706; margin-top: 2px; font-weight: bold;">✨ 연계 콤보 (상점 해금): 🌾 화염 가시밭 잔류 (1단계: 4초 화염장판 / 2단계: 8초 황금가시밭 속박 & 방어력 30% 감소)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-pig-card">
+                            <img src="assets/pig2.png" alt="둘째 돼지" style="width: 72px; height: 72px; border-radius: 16px; object-fit: contain; background: #efebe9; border: 2.5px solid #8d6e63; box-shadow: 0 3px 8px rgba(0,0,0,0.15); flex-shrink: 0; padding: 4px;">
+                            <div class="menu-pig-info">
+                                <div class="menu-pig-name">둘째 돼지 (도토리 명사수 · 2층 발코니 / 1단계 1층)</div>
+                                <div class="menu-pig-ranks">
+                                    <div>★1성: 도토리 5발 조준 폭격</div>
+                                    <div>★2성: 🧨 다이너마이트 7발 (공중 풍선/우산늑대 격추) + 새총 지원사격</div>
+                                    <div>★3성: 🚀 핵도토리 10발 융단폭격 + 2초 전원 기절</div>
+                                    <div style="color: #8d6e63; margin-top: 2px; font-weight: bold;">✨ 연계 콤보 (상점 해금): 💣 다이너마이트 2차 클러스터 (1단계: 5발 유탄 2차폭발 / 2단계: 10발 고폭탄 + 바닥 유황 지뢰 3개)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-pig-card">
+                            <img src="assets/pig3.png" alt="셋째 돼지" style="width: 72px; height: 72px; border-radius: 16px; object-fit: contain; background: #ffebee; border: 2.5px solid #d32f2f; box-shadow: 0 3px 8px rgba(0,0,0,0.15); flex-shrink: 0; padding: 4px;">
+                            <div class="menu-pig-info">
+                                <div class="menu-pig-name">셋째 돼지 (철통 수호자 · 1층 성문 수리 & 방패)</div>
+                                <div class="menu-pig-ranks">
+                                    <div>★ 1단계: 체력 40% 즉시 수리 + 펄펄 끓는 가마솥</div>
+                                    <div>👑 2단계 (마스터 MAX): 🎯 대공 요격포 & 황금 수리 (하늘 공중늑대(풍선/우산) 일제 격추 + 체력 65% 대량 복구 + 끓는 기름솥)</div>
+                                    <div style="color: #dc2626; margin-top: 2px; font-weight: bold;">✨ 연계 콤보 (상점 해금): ♨️ 요새 증기 충격파 & 용암 대공포 (1단계: 고압증기 넉백+공속 50% / 2단계: 플라즈마 펄스 스턴+용암 대공포 3연발+5초 무적)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= [탭 3: 영구 연구소 & 궁극기] ================= -->
+            <div id="tab-start-meta-content" class="hidden">
+                <div class="menu-meta-box" style="margin-top: 4px;">
+                    <div class="menu-section-header">
+                        <div class="menu-section-title">🪙 영구 골드 연구소 (코인 메타 투자)</div>
+                        <div class="menu-bank-display">
+                            저축된 금고: 🪙 <strong id="menu-bank-gold">0</strong>G
+                        </div>
+                    </div>
+                    <div class="menu-meta-status">
+                        현재 골드 획득 배율: <span class="meta-gold-highlight">+<span id="menu-gold-bonus">0</span>% 추가 획득 중! (최대 +200%)</span>
+                    </div>
+                    <p class="menu-meta-desc">
+                        게임 클리어 및 무한모드 종료 후 남은 골드로 영구 골드 버프에 투자하세요!<br>
+                        <strong>100 골드마다 +1%</strong> 게임 중 모든 골드 획득량이 영구적으로 증가합니다. (최대 <strong>+200%</strong>)
+                    </p>
+                    <div class="meta-invest-grid">
+                        <button class="meta-invest-btn" data-percent="1">+1% (100G)</button>
+                        <button class="meta-invest-btn" data-percent="10">+10% (1,000G)</button>
+                        <button class="meta-invest-btn" data-percent="50">+50% (5,000G)</button>
+                        <button class="meta-invest-btn" data-percent="100">+100% (10,000G)</button>
+                        <button class="meta-invest-btn" data-percent="200">+200% (20,000G)</button>
+                        <button id="meta-invest-all-btn" class="meta-invest-btn all-in">💎 전액 투자 (All-in)</button>
+                    </div>
+                    <div style="margin-top: 6px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button id="meta-test-add-gold-btn" class="meta-small-btn">🎁 +500G 충전</button>
+                        <button id="meta-test-add-10k-btn" class="meta-small-btn" style="background: #f3e8ff; border-color: #d8b4fe; color: #7e22ce;">🎁 +10,000G (궁극기용)</button>
+                        <button id="meta-test-add-1m-btn" class="meta-small-btn" style="background: #fef3c7; border-color: #f59e0b; color: #b45309;">🎁 +100만G (칭호용)</button>
+                        <button id="meta-test-add-100m-btn" class="meta-small-btn" style="background: #e0f2fe; border-color: #0284c7; color: #0369a1;">🎁 +1억G (최종칭호용)</button>
+                        <button id="meta-test-clear-100w-btn" class="meta-small-btn" style="background: #fdf2f8; border-color: #ec4899; color: #be185d;">👑 100W 클리어(핵초보 해금)</button>
+                        <button id="meta-test-max-all-btn" class="meta-small-btn" style="background: #ecfdf5; border-color: #10b981; color: #047857;">⚡ 모든 능력 MAX 플래그</button>
+                    </div>
+
+                    <!-- 일반공격 적 밀치기 (넉백) 연구: 750G당 +1%, 최대 15% -->
+                    <div class="menu-knockback-skill-box" id="menu-knockback-box" style="margin-top: 10px; padding: 12px 14px; background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 12px;">
+                        <div class="menu-section-header">
+                            <div class="menu-section-title" style="color: #0284c7;">💨 일반공격 적 밀치기 (넉백) 연구</div>
+                            <div class="menu-bank-display">
+                                현재 밀치기 확률: 💨 <strong id="menu-knockback-val" style="color: #0284c7;">0</strong>% / 15% (MAX)
+                            </div>
+                        </div>
+                        <p class="menu-meta-desc" style="margin: 6px 0 10px;">
+                            일반 공격(도토리 새총) 적중 시 적을 <strong>맵의 20분의 1 (64px)</strong> 만큼 뒤로 밀쳐냅니다!<br>
+                            <strong>750 금고 골드마다 +1%</strong> 확률이 증가합니다. (메뉴에서 최대 <strong>15%</strong>까지 강화 가능)
+                        </p>
+                        <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="font-size: 13px; color: #444; line-height: 1.5;">
+                                • 강화 비용: <strong style="color: #d97706;">750G</strong> (1회당 +1% 상승)<br>
+                                • 현재 효과: <strong id="menu-knockback-effect-text" style="color: #0284c7;">0% 확률로 적을 64px 밀침</strong>
+                            </div>
+                            <button id="menu-buy-knockback-btn" class="meta-knockback-btn">
+                                💨 밀치기 확률 +1% 강화 (750G)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 궁극기: 모든 능력치 MAX & 메뉴 10,000 코인 해금 스킬 -->
+                    <div class="menu-ultimate-skill-box" id="menu-ultimate-box">
+                        <div class="menu-section-header">
+                            <div class="menu-section-title" style="color: #9c27b0;">🌪️ 전설의 궁극기: 천지개벽 대회오리 폭풍</div>
+                            <div id="menu-ultimate-badge" class="ultimate-badge-locked">🔒 잠김</div>
+                        </div>
+                        <p class="menu-ultimate-desc" style="font-size: 13px; line-height: 1.5; color: #555; margin: 6px 0 10px;">
+                            <strong>해금 조건:</strong> 모든 능력을 MAX로 찍고 + 메뉴 금고에 <strong>10,000 코인</strong> 수집 시 해금!<br>
+                            <strong>전투 효과:</strong> 인게임에서 <strong>35초 쿨타임으로 [4] 키를 눌러 수동 발사!</strong> 화면 전체를 뒤덮는 초거대 대회오리가 <strong>하늘의 풍선늑대 풍선까지 단숨에 폭파</strong>시키고 <strong>늑대들을 하늘 높이 날려 360도 회전시키며 날려버립니다!</strong>
+                        </p>
+                        <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="font-size: 13px; color: #444; line-height: 1.6;">
+                                • 모든 능력 MAX 달성: <strong id="menu-max-check" style="color: #dc2626;">❌ 미달성</strong><br>
+                                • 금고 코인: <strong id="menu-coin-check" style="color: #ea580c;">0 / 10,000G</strong>
+                            </div>
+                            <button id="menu-buy-ultimate-btn" class="ultimate-buy-btn" disabled>
+                                ⚡ 10,000 코인으로 궁극기 해금
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 🔥 무한 모드 전용 투사체 데미지 강화: 1%당 5,000G, 최대 +1000% -->
+                    <div class="menu-endless-dmg-box" id="menu-endless-dmg-box" style="margin-top: 10px; padding: 12px 14px; background: #fff7ed; border: 1.5px solid #ea580c; border-radius: 12px;">
+                        <div class="menu-section-header">
+                            <div class="menu-section-title" style="color: #ea580c;">🔥 무한 모드 전용 투사체 데미지 강화 (최대 +1,000%)</div>
+                            <div class="menu-bank-display">
+                                무한 공격력: 🔥 <strong id="menu-endless-dmg-val" style="color: #ea580c;">+0%</strong> / +1,000% (MAX)
+                            </div>
+                        </div>
+                        <p class="menu-meta-desc" style="margin: 6px 0 10px;">
+                            <strong>무한 모드(Endless)</strong>에서만 삼형제의 모든 일반 투사체 데미지가 곱연산으로 대폭 증폭됩니다!<br>
+                            <strong>5,000 금고 골드마다 +1%</strong> 데미지가 영구 강화됩니다. (최대 <strong>+1,000%</strong>까지 강화 가능, 스토리 모드는 밸런스 유지)
+                        </p>
+                        <div class="meta-invest-grid" style="margin-bottom: 6px;">
+                            <button class="meta-endless-dmg-btn" data-amount="1">+1% (5,000G)</button>
+                            <button class="meta-endless-dmg-btn" data-amount="10">+10% (50,000G)</button>
+                            <button class="meta-endless-dmg-btn" data-amount="100">+100% (500,000G)</button>
+                            <button id="meta-endless-dmg-all-btn" class="meta-invest-btn all-in" style="background: linear-gradient(135deg, #ea580c, #c2410c);">💎 전액 강화 (All-in)</button>
+                        </div>
+                    </div>
+
+                    <!-- 👑 전설의 명예 칭호 상점 -->
+                    <div class="menu-titles-shop-box" id="menu-titles-shop-box" style="margin-top: 10px; padding: 12px 14px; background: #faf5ff; border: 1.5px solid #a855f7; border-radius: 12px;">
+                        <div class="menu-section-header">
+                            <div class="menu-section-title" style="color: #9333ea;">👑 전설의 명예 칭호 상점 (칭호 승급 트리)</div>
+                            <div class="menu-bank-display">
+                                현재 장착 칭호: <span id="menu-current-title-badge" class="current-title-tag">없음</span>
+                            </div>
+                        </div>
+                        <p class="menu-meta-desc" style="margin: 6px 0 10px;">
+                            무한 모드 100웨이브를 최종 돌파하면 <strong>【핵초보】</strong> 칭호가 무료로 해금됩니다!<br>
+                            이후 금고 골드로 차례대로 승급하여 전설의 칭호들을 장착하고 상단 HUD 및 전장에 뽐내보세요.
+                        </p>
+                        <div id="titles-cards-container" class="titles-cards-grid">
+                            <!-- JS renderMenuMetaUI에서 실시간 렌더링 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 상점 모달 (집 개축 & 삼형제 승급 탭) -->
+    <div id="shop-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 class="modal-title">🔨 집 개축 및 삼형제 승급 상점</h2>
+            <div style="font-size: 17px; font-weight: 900; color: #d97706; margin-bottom: 8px;">
+                보유 골드: 🪙 <span id="shop-gold-text">0</span>G
+            </div>
+            <!-- 테스트용 원클릭 빠른 버튼 -->
+            <div style="margin-bottom: 8px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                <button id="shop-test-add-gold-btn" class="meta-small-btn" style="padding: 3px 8px; font-size: 11px;">🎁 +1,000G</button>
+                <button id="shop-test-max-stats-btn" class="meta-small-btn" style="padding: 3px 8px; font-size: 11px; background: #fef08a; border-color: #eab308; color: #854d0e;">⚡ 4대 스탯 ALL MAX</button>
+                <button id="shop-test-max-pigs-btn" class="meta-small-btn" style="padding: 3px 8px; font-size: 11px; background: #e0f2fe; border-color: #0284c7; color: #0369a1;">🐷 삼형제 기본 MAX</button>
+            </div>
+
+            <!-- 상점 상단 탭 -->
+            <div class="shop-tabs">
+                <button id="tab-house-btn" class="shop-tab-btn active">🏡 집 개축 & 스탯</button>
+                <button id="tab-pigs-btn" class="shop-tab-btn">👑 삼형제 개별 승급</button>
+            </div>
+
+            <!-- 탭 1: 집 개축 & 기본 스탯 강화 -->
+            <div id="shop-tab-house-content">
+                <!-- 집 진화 배너 -->
+                <div class="house-evolve-card">
+                    <div class="house-evolve-info">
+                        <h4 id="evolve-title">2단계: 아늑한 통나무집</h4>
+                        <p id="evolve-desc">체력 350, 방어력 대폭 증가, 2층 발코니 사격 지원 개방 (비용: 150G)</p>
+                    </div>
+                    <button id="evolve-house-btn" class="shop-buy-btn" style="padding: 10px 18px; font-size: 14px;">
+                        통나무집 신축 (150G)
+                    </button>
+                </div>
+
+                <!-- 스탯 업그레이드 그리드 -->
+                <div class="shop-grid">
+                    <div id="upg-damage" class="shop-item">
+                        <div class="shop-item-icon">🍎</div>
+                        <div class="shop-item-info">
+                            <div class="shop-item-name">투사체 데미지</div>
+                            <div class="shop-item-desc">사과/돌멩이 공격력 증가</div>
+                            <div class="shop-item-level">Lv. 1 / 5</div>
+                        </div>
+                        <button class="shop-buy-btn" data-upg-key="damageLevel">70G</button>
+                    </div>
+
+                    <div id="upg-speed" class="shop-item">
+                        <div class="shop-item-icon">⚡</div>
+                        <div class="shop-item-info">
+                            <div class="shop-item-name">사격 속도</div>
+                            <div class="shop-item-desc">투사체 발사 딜레이 감소</div>
+                            <div class="shop-item-level">Lv. 1 / 5</div>
+                        </div>
+                        <button class="shop-buy-btn" data-upg-key="attackSpeedLevel">80G</button>
+                    </div>
+
+                    <div id="upg-cd" class="shop-item">
+                        <div class="shop-item-icon">⏳</div>
+                        <div class="shop-item-info">
+                            <div class="shop-item-name">스킬 쿨다운</div>
+                            <div class="shop-item-desc">삼형제 스킬 쿨타임 단축</div>
+                            <div class="shop-item-level">Lv. 1 / 5</div>
+                        </div>
+                        <button class="shop-buy-btn" data-upg-key="cooldownLevel">90G</button>
+                    </div>
+
+                    <div id="upg-repair" class="shop-item">
+                        <div class="shop-item-icon">🔧</div>
+                        <div class="shop-item-info">
+                            <div class="shop-item-name">자동 수리</div>
+                            <div class="shop-item-desc">집 체력 초당 자동 회복</div>
+                            <div class="shop-item-level">Lv. 0 / 5</div>
+                        </div>
+                        <button class="shop-buy-btn" data-upg-key="autoRepairLevel">60G</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 2: 아기돼지 삼형제 개별 승급 -->
+            <div id="shop-tab-pigs-content" class="pigs-upgrade-container hidden">
+                <!-- 첫째 돼지 -->
+                <div class="pig-upgrade-card" id="pig-card-1">
+                    <div class="pig-card-main">
+                        <div class="pig-avatar-wrap">
+                            <img src="assets/pig1.png" alt="첫째 돼지" style="width: 52px; height: 52px; border-radius: 12px; object-fit: contain; background: #fff8e1; border: 2.5px solid #ff9800; display: block; padding: 2px;">
+                            <div class="pig-rank-badge" id="pig-1-badge">★ 1성</div>
+                        </div>
+                        <div class="pig-upgrade-info">
+                            <div class="pig-upgrade-header">
+                                <span class="pig-upgrade-name">첫째 돼지 (짚의 명인 · 1층)</span>
+                                <span class="pig-current-skill" id="pig-1-skill-name">스킬: 일반 짚단</span>
+                            </div>
+                            <div class="pig-upgrade-desc" id="pig-1-desc">직선으로 거대 짚단을 굴려 늑대를 넉백시키고 3초 감속을 겁니다.</div>
+                            <div class="pig-upgrade-next" id="pig-1-next">다음 승급: ★★ 불타는 짚단 (화염 관통 피해 + 넉백 1.5배)</div>
+                        </div>
+                        <button class="shop-buy-btn" id="pig-1-upg-btn" data-pig-id="1">120G</button>
+                    </div>
+                    <!-- 🌾 첫째 돼지 2단계 연계 콤보 스킬 -->
+                    <div class="pig-combo-row" id="pig-1-combo-row" style="display: none;">
+                        <div class="pig-combo-badge" id="pig-1-combo-badge">✨ 콤보 1단계 미습득</div>
+                        <div class="pig-combo-info">
+                            <div class="pig-combo-title" id="pig-1-combo-title">🌾 화염 가시밭 잔류 (1번 연계)</div>
+                            <div class="pig-combo-desc" id="pig-1-combo-desc">짚단 궤적에 4초간 화염 장판 잔류 (초당 40 피해 + 35% 감속)</div>
+                        </div>
+                        <button class="shop-buy-btn pig-combo-btn" id="pig-1-combo-btn" data-combo-pig="1">220G</button>
+                    </div>
+                </div>
+
+                <!-- 둘째 돼지 -->
+                <div class="pig-upgrade-card" id="pig-card-2">
+                    <div class="pig-card-main">
+                        <div class="pig-avatar-wrap">
+                            <img src="assets/pig2.png" alt="둘째 돼지" style="width: 52px; height: 52px; border-radius: 12px; object-fit: contain; background: #efebe9; border: 2.5px solid #8d6e63; display: block; padding: 2px;">
+                            <div class="pig-rank-badge" id="pig-2-badge">★ 1성</div>
+                        </div>
+                        <div class="pig-upgrade-info">
+                            <div class="pig-upgrade-header">
+                                <span class="pig-upgrade-name">둘째 돼지 (도토리 명사수 · 2층)</span>
+                                <span class="pig-current-skill" id="pig-2-skill-name">스킬: 5연발 도토리</span>
+                            </div>
+                            <div class="pig-upgrade-desc" id="pig-2-desc">지정한 마우스 좌표에 5발의 도토리 폭탄을 투하합니다.</div>
+                            <div class="pig-upgrade-next" id="pig-2-next">다음 승급: ★★ 다이너마이트 도토리 (7발 폭격 + 공중 늑대(풍선/우산) 폭파 격추 + 폭발 반경 1.4배)</div>
+                        </div>
+                        <button class="shop-buy-btn" id="pig-2-upg-btn" data-pig-id="2">140G</button>
+                    </div>
+                    <!-- 💣 둘째 돼지 2단계 연계 콤보 스킬 -->
+                    <div class="pig-combo-row" id="pig-2-combo-row" style="display: none;">
+                        <div class="pig-combo-badge" id="pig-2-combo-badge">✨ 콤보 1단계 미습득</div>
+                        <div class="pig-combo-info">
+                            <div class="pig-combo-title" id="pig-2-combo-title">💣 다이너마이트 2차 클러스터 (2번 연계)</div>
+                            <div class="pig-combo-desc" id="pig-2-combo-desc">폭발 시 5개 유탄 파편이 공중/지상으로 튀어 2차 연쇄 폭발</div>
+                        </div>
+                        <button class="shop-buy-btn pig-combo-btn" id="pig-2-combo-btn" data-combo-pig="2">250G</button>
+                    </div>
+                </div>
+
+                <!-- 셋째 돼지 -->
+                <div class="pig-upgrade-card" id="pig-card-3">
+                    <div class="pig-card-main">
+                        <div class="pig-avatar-wrap">
+                            <img src="assets/pig3.png" alt="셋째 돼지" style="width: 52px; height: 52px; border-radius: 12px; object-fit: contain; background: #ffebee; border: 2.5px solid #d32f2f; display: block; padding: 2px;">
+                            <div class="pig-rank-badge" id="pig-3-badge">★ 1단계</div>
+                        </div>
+                        <div class="pig-upgrade-info">
+                            <div class="pig-upgrade-header">
+                                <span class="pig-upgrade-name">셋째 돼지 (벽돌의 마스터 · 3층)</span>
+                                <span class="pig-current-skill" id="pig-3-skill-name">스킬: 수리 & 가마솥</span>
+                            </div>
+                            <div class="pig-upgrade-desc" id="pig-3-desc">집 체력을 즉시 40% 회복하고 집 앞 늑대들에게 끓는 물을 붓습니다.</div>
+                            <div class="pig-upgrade-next" id="pig-3-next">다음 승급: 👑 마스터 [2단계] 대공 요격포 & 황금 수리 (하늘 공중늑대(풍선/우산) 일제 격추 + 65% 회복 + 끓는 기름 솥)</div>
+                        </div>
+                        <button class="shop-buy-btn" id="pig-3-upg-btn" data-pig-id="3">160G</button>
+                    </div>
+                    <!-- ♨️ 셋째 돼지 2단계 연계 콤보 스킬 -->
+                    <div class="pig-combo-row" id="pig-3-combo-row" style="display: none;">
+                        <div class="pig-combo-badge" id="pig-3-combo-badge">✨ 콤보 1단계 미습득</div>
+                        <div class="pig-combo-info">
+                            <div class="pig-combo-title" id="pig-3-combo-title">♨️ 요새 증기 충격파 & 용암포 (3번 연계)</div>
+                            <div class="pig-combo-desc" id="pig-3-combo-desc">수리 가동 시 요새 고압 증기 방출 (접근 적 전원 넉백 + 공속 +50% 버프)</div>
+                        </div>
+                        <button class="shop-buy-btn pig-combo-btn" id="pig-3-combo-btn" data-combo-pig="3">280G</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모든 스펙 MAX 시 남은 골드 메타 투자 / 금고 입금 박스 -->
+            <div id="shop-all-max-box" class="saved-gold-box hidden" style="margin-top: 14px; text-align: center;">
+                👑 <strong>모든 스펙 ALL MAX 달성!</strong><br>
+                남은 인게임 골드로 즉시 영구 골드/밀치기 강화에 투자하거나 메뉴 금고로 안전하게 저금하세요!<br>
+                <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <button id="shop-meta-invest-btn" class="shop-buy-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 8px 14px; font-size: 13px;">
+                        🔥 +1% 영구 골드 (100G)
+                    </button>
+                    <button id="shop-knockback-invest-btn" class="shop-buy-btn" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); padding: 8px 14px; font-size: 13px;">
+                        💨 +1% 적 밀치기 (750G)
+                    </button>
+                    <button id="shop-bank-deposit-btn" class="shop-buy-btn" style="background: linear-gradient(135deg, #4caf50, #2e7d32); padding: 8px 14px; font-size: 13px;">
+                        🏛️ 남은 골드 금고로 저금
+                    </button>
+                </div>
+
+                <!-- 상점 궁극기 해금 & 장착 현황 -->
+                <div id="shop-ultimate-status-box" style="margin-top: 10px; padding: 10px; background: #faf5ff; border: 1.5px solid #d946ef; border-radius: 12px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #9c27b0;">🌪️ 전설의 궁극기: 천지개벽 대회오리 폭풍</span>
+                        <span id="shop-ultimate-badge" class="ultimate-badge-locked">🔒 잠김</span>
+                    </div>
+                    <div id="shop-ultimate-status-text" style="font-size: 13px; color: #555; margin: 4px 0;">
+                        메뉴 금고에 10,000 코인 보유 시 해금됩니다! (35초 쿨타임 [4] 키 수동 발사)
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 6px;">
+                        <span id="shop-ultimate-coin-count" style="font-size: 12px; color: #666;">금고: 0 / 10,000G</span>
+                        <button id="shop-buy-ultimate-btn" class="ultimate-buy-btn" style="padding: 6px 14px; font-size: 13px;" disabled>
+                            ⚡ 10,000 코인으로 해금
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="close-shop-btn" class="primary-btn" style="padding: 10px 32px; font-size: 16px; margin-top: 14px;">
+                전투로 복귀하기
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. 엔딩 및 난이도 정복 모달 -->
+    <div id="ending-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div id="ending-badge" class="ending-badge">👑 VICTORY 👑</div>
+            <h2 id="ending-modal-title" class="modal-title">🎉 축하합니다! 늑대 격퇴 성공! 🎉</h2>
+            <div id="ending-anim-frame" class="ending-anim-frame">
+                🐺🔥🧱💨
+            </div>
+            <p id="ending-desc-text" style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 14px;">
+                거대 보스 <strong>'빅 배드 울프'</strong>가 벽돌집 굴뚝으로 뛰어들었다가<br>
+                펄펄 끓는 가마솥에 엉덩이를 덴 채 비명을 지르며 도망쳤습니다!<br>
+                아기돼지 삼형제는 평화로운 보금자리를 지켜냈습니다!
+            </p>
+            <div class="ending-stats-box">
+                <div>진행 난이도: <span id="ending-diff-name" style="color: #2e7d32; font-weight: bold;">쉬움</span></div>
+                <div id="ending-score-text" style="font-size: 16px; font-weight: bold; color: #1976d2; margin-top: 3px;">
+                    최종 점수: 0점
+                </div>
+                <div id="ending-rank-row" class="hidden" style="margin-top: 5px;">
+                    🏆 달성 랭크: <span class="rank-pill">SSS (전설의 건축가 & 수호자)</span>
+                </div>
+            </div>
+
+            <div id="ending-unlock-notice" class="unlock-notice-box hidden">
+                ✨ <strong>특전 해금: [무한 서바이벌 모드]가 개방되었습니다!</strong> ✨
+            </div>
+
+            <div id="ending-gold-saved-box" class="saved-gold-box" style="margin-bottom: 14px;">
+                🪙 남은 골드 <strong id="ending-saved-gold-val" style="color: #e65100;">0G</strong>가 메뉴 메타 금고로 안전하게 저축되었습니다!
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="ending-menu-btn" class="primary-btn" style="background: linear-gradient(180deg, #4caf50, #2e7d32); box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);">
+                    🏠 메뉴로 돌아가기
+                </button>
+                <button id="next-diff-btn" class="primary-btn" style="background: linear-gradient(180deg, #ff9800, #f57c00);">
+                    다음 난이도 도전! ⚔️
+                </button>
+                <button id="endless-btn" class="primary-btn hidden" style="background: linear-gradient(180deg, #e91e63, #c2185b);">
+                    무한 서바이벌 모드 도전! 🔥
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 게임오버 모달 -->
+    <div id="gameover-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 class="modal-title" style="color: #c62828;">🏚️ 집이 무너졌습니다! 😭</h2>
+            <div style="font-size: 54px; margin: 15px 0;">🐷💨 🐺💨</div>
+            <p style="font-size: 15px; color: #666; margin-bottom: 14px;">
+                늑대들의 끈질긴 공격에 집이 버티지 못했습니다.<br>
+                집을 더 빠르게 업그레이드하고 스킬을 적재적소에 활용해보세요!
+            </p>
+            <div id="gameover-score-text" style="font-size: 16px; font-weight: bold; color: #555; margin-bottom: 12px;">
+                도달 웨이브: 1
+            </div>
+            <div id="gameover-gold-saved-box" class="saved-gold-box" style="margin-bottom: 18px; line-height: 1.5;">
+                🔥 <strong>영구 골드 버프 보존:</strong> 현재 보유 중인 <strong>골드 획득 +<span id="gameover-bonus-val" style="color: #e65100; font-size: 18px;">0</span>%</strong> 보너스는 그대로 유지됩니다!<br>
+                <span style="font-size: 13px; color: #c62828;">(골드, 집 등급, 스탯 업그레이드, 아기돼지 승급은 모두 초기화되었습니다)</span>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="retry-btn" class="primary-btn">다시 도전하기 🔄</button>
+                <button id="gameover-menu-btn" class="hud-btn" style="padding: 12px 24px; font-size: 16px;">🏠 메뉴로 돌아가기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 일시정지 모달 -->
+    <div id="pause-modal" class="modal-overlay">
+        <div class="modal-card pause-modal-card">
+            <h2 class="modal-title" style="color: #d97706;">⏸️ 게임 일시정지</h2>
+            <div style="font-size: 50px; margin: 12px 0;">🐷 ☕ 🐺</div>
+            <p style="font-size: 15px; color: #555; margin-bottom: 20px; line-height: 1.5;">
+                잠시 게임을 멈췄습니다.<br>
+                준비가 되면 계속하기를 눌러 전투를 재개하세요!
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 280px; max-width: 90%; margin: 0 auto;">
+                <button id="resume-btn" class="primary-btn" style="padding: 12px 28px; font-size: 17px;">
+                    ▶️ 게임 계속하기
+                </button>
+                <button id="pause-landscape-btn" class="hud-btn landscape-hud-btn" style="padding: 11px 20px; font-size: 15px;">
+                    🔄 가로모드 화면전환
+                </button>
+                <button id="pause-shop-btn" class="hud-btn" style="padding: 11px 20px; font-size: 15px;">
+                    🔨 상점 열기
+                </button>
+                <button id="pause-menu-btn" class="hud-btn" style="padding: 11px 20px; font-size: 15px;">
+                    🏠 메인 메뉴로
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. 모바일 가로모드 화면 회전 안내 모달 -->
+    <div id="orientation-guide-modal" class="modal-overlay hidden">
+        <div class="modal-card orientation-guide-card">
+            <div class="guide-rotate-anim">📱 ➔ 🔄 ➔ 📱</div>
+            <h2 class="guide-title">가로 화면 모드 안내</h2>
+            <p class="guide-desc">
+                본 게임은 <strong>16:9 가로 화면</strong>에 최적화되어 있습니다.<br><br>
+                스마트폰의 <strong>'화면 회전(자동 회전)'</strong>을 켜신 후<br>
+                <strong>기기를 가로로 회전</strong>해주세요!
+            </p>
+            <button id="guide-confirm-btn" class="primary-btn" style="padding: 10px 24px; font-size: 16px;">
+                확인했습니다 👍
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 모듈화된 고성능 스크립트 로드 -->
+<script src="constants.js"></script>
+<script src="assets.js"></script>
+<script src="performance.js"></script>
+<script src="music.js"></script>
+<script src="audio.js"></script>
+<script src="pig_sprites.js"></script>
+<script src="wolf_sprites.js"></script>
+<script src="background.js"></script>
+<script src="house.js"></script>
+<script src="enemies.js"></script>
+<script src="effects.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>

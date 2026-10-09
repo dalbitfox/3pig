@@ -1,0 +1,1050 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>✨ 스킬 & 전투 샌드박스 프리뷰 (Skill Preview & Sandbox)</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #030712 100%) !important;
+            color: #f1f5f9 !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            padding: 16px 12px 60px 12px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+        }
+
+        /* 상단 네비게이션 */
+        .preview-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 100;
+        }
+        .preview-nav-link {
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid #475569;
+            border-radius: 999px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .preview-nav-link:hover, .preview-nav-link.active {
+            background: #2563eb;
+            border-color: #60a5fa;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .preview-header h1 {
+            font-size: 26px;
+            color: #38bdf8;
+            text-shadow: 0 2px 14px rgba(56, 189, 248, 0.5);
+            margin-bottom: 6px;
+        }
+        .preview-header p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        /* 🌟 샌드박스 2단 스튜디오 레이아웃 */
+        .studio-layout {
+            width: 100%;
+            max-width: 1560px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        /* 좌측 실시간 캔버스 모니터: 데스크톱에서 항상 화면 상단에 고정(Sticky) */
+        .studio-screen-col {
+            flex: 1 1 56%;
+            max-width: 860px;
+            position: sticky;
+            top: 14px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 캔버스 뷰포트 컨테이너 */
+        .arena-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            background: #000;
+            border: 3px solid #38bdf8;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.8), 0 0 24px rgba(56, 189, 248, 0.35);
+            flex-shrink: 0;
+        }
+
+        #game-container {
+            width: 100% !important;
+            height: 100% !important;
+            position: relative !important;
+            border-radius: 0 !important;
+            overflow: hidden !important;
+            display: block !important;
+        }
+
+        #game-canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+            cursor: crosshair;
+        }
+
+        /* 캔버스 하단 스튜디오 액션 툴바 */
+        .screen-subbar {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        .subbar-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .subbar-badge {
+            background: #0284c7;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .subbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .subbar-btn {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .subbar-btn:hover {
+            background: #334155;
+            color: #fff;
+            border-color: #94a3b8;
+        }
+
+        /* 우측 프리뷰 제어 대시보드 컬럼 */
+        .studio-controls-col {
+            flex: 1 1 44%;
+            max-width: 660px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .dashboard-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        @media (max-width: 1150px) {
+            .studio-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .studio-screen-col {
+                width: 100%;
+                max-width: 900px;
+                position: sticky;
+                top: 8px;
+            }
+            .studio-controls-col {
+                width: 100%;
+                max-width: 900px;
+            }
+        }
+
+        #dummy-modals-container,
+        #dummy-modals-container * {
+            display: none !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-section {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #475569;
+            padding-bottom: 8px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-desc {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 10px;
+        }
+
+        .skill-btn {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #f1f5f9;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            transition: all 0.15s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .skill-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            border-color: #94a3b8;
+        }
+        .skill-btn:active {
+            transform: translateY(0);
+        }
+        .skill-btn .btn-title {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .skill-btn .btn-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.25;
+        }
+
+        /* 테마별 버튼 색상 */
+        .btn-straw { border-color: #d97706; }
+        .btn-straw:hover { background: #78350f; border-color: #f59e0b; }
+        .btn-straw .btn-title { color: #fde68a; }
+
+        .btn-bomb { border-color: #dc2626; }
+        .btn-bomb:hover { background: #7f1d1d; border-color: #ef4444; }
+        .btn-bomb .btn-title { color: #fca5a5; }
+
+        .btn-brick { border-color: #059669; }
+        .btn-brick:hover { background: #064e3b; border-color: #10b981; }
+        .btn-brick .btn-title { color: #a7f3d0; }
+
+        .btn-ultimate { border-color: #0284c7; background: linear-gradient(135deg, #0f172a, #0369a1); }
+        .btn-ultimate:hover { background: linear-gradient(135deg, #0369a1, #0284c7); border-color: #38bdf8; box-shadow: 0 0 16px rgba(56, 189, 248, 0.5); }
+        .btn-ultimate .btn-title { color: #bae6fd; font-size: 14px; }
+
+        .btn-special { border-color: #7c3aed; }
+        .btn-special:hover { background: #4c1d95; border-color: #8b5cf6; }
+        .btn-special .btn-title { color: #ddd6fe; }
+
+        .btn-wolf { border-color: #475569; }
+        .btn-wolf:hover { background: #334155; border-color: #cbd5e1; }
+        .btn-wolf .btn-title { color: #f1f5f9; }
+
+        .btn-new-wolf { border-color: #059669; background: #064e3b33; }
+        .btn-new-wolf:hover { background: #064e3b; border-color: #10b981; }
+        .btn-new-wolf .btn-title { color: #6ee7b7; }
+
+        .btn-danger { border-color: #e11d48; }
+        .btn-danger:hover { background: #881337; border-color: #f43f5e; }
+        .btn-danger .btn-title { color: #fecdd3; }
+
+        .new-tag {
+            background: #10b981;
+            color: #fff;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* 툴바 탭 & 토글 */
+        .option-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pill-btn {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .pill-btn:hover {
+            background: #334155;
+            color: #fff;
+        }
+        .pill-btn.active {
+            background: #2563eb;
+            border-color: #60a5fa;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+        }
+
+        /* 안내 가이드 카드 */
+        .guide-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #cbd5e1;
+        }
+        .guide-card h3 {
+            font-size: 14px;
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 링크 네비게이션 -->
+    <div class="preview-nav">
+        <a href="index.html" class="preview-nav-link">🎮 인게임 플레이</a>
+        <a href="skills_preview.html" class="preview-nav-link active">✨ 스킬 & 전투 샌드박스 프리뷰</a>
+        <a href="wolf_sprites_preview.html" class="preview-nav-link">🐺 늑대 군단 10종 프리뷰</a>
+        <a href="pig_sprites_preview.html" class="preview-nav-link">🐷 삼형제 스프라이트 프리뷰</a>
+        <a href="fairytale_stage_backgrounds_showcase.html" class="preview-nav-link">🏰 신축 주택 & 스테이지 프리뷰</a>
+    </div>
+
+    <div class="preview-header">
+        <h1>✨ 아기돼지 삼형제 스킬 & 늑대 전투 샌드박스</h1>
+        <p>각 삼형제의 단계별 스킬(1성~3성), MAX 콤보 연계기, 전설의 궁극기 및 신규 추가 늑대 3종을 즉시 테스트하고 감상하세요.</p>
+    </div>
+
+    <!-- 🌟 스튜디오 2단 레이아웃 (좌측 고정 프리뷰 캔버스 + 우측 제어 대시보드) -->
+    <div class="studio-layout">
+        <!-- 좌측: 실시간 전투 프리뷰 모니터 (항상 화면에 고정) -->
+        <div class="studio-screen-col">
+            <div class="arena-container">
+                <div id="game-container">
+                    <div id="mobile-rotate-notice" class="mobile-rotate-notice hidden">
+                        <span class="rotate-notice-text">📱 가로 모드로 전환해주세요.</span>
+                        <button id="banner-landscape-btn" class="banner-rotate-btn" type="button">🔄</button>
+                    </div>
+
+                    <!-- 게임 캔버스 -->
+                    <canvas id="game-canvas"></canvas>
+
+                    <!-- 보스 상단 체력바 -->
+                    <div id="boss-hud-container" class="boss-hud-container hidden">
+                        <div class="boss-hud-title">👑 힙스터 빅 배드 울프 제왕</div>
+                        <div class="boss-hud-bar-bg">
+                            <div id="boss-hud-bar-fill" class="boss-hud-bar-fill"></div>
+                        </div>
+                        <div id="boss-hud-hp-text" class="boss-hud-hp-text">100%</div>
+                    </div>
+
+                    <!-- 상단 HUD -->
+                    <div id="top-hud">
+                        <div class="hud-panel health-container">
+                            <div class="health-label">
+                                <span>🏡 집 내구도</span>
+                                <span id="house-hp-text">150 / 150</span>
+                            </div>
+                            <div class="health-bar-bg">
+                                <div id="house-hp-fill" class="health-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="hud-panel">
+                            <div id="diff-badge" class="diff-badge-pill diff-badge-easy">🟢 샌드박스</div>
+                            <div id="user-title-badge" class="user-title-pill hidden"></div>
+                            <div class="gold-badge">🪙 <span id="gold-display">99999</span>G<span id="gold-bonus-badge" class="gold-bonus-pill hidden">+0%</span></div>
+                            <div class="wave-badge">
+                                🚩 <span id="wave-display">SANDBOX</span>
+                                <span id="stage-theme-display" class="stage-theme-badge">✨ 스킬 프리뷰 연습장</span>
+                                <span id="stat-awakening-badge" class="stat-awakening-badge hidden">⚡ 신성 각성</span>
+                            </div>
+                        </div>
+
+                        <div class="hud-panel hud-controls">
+                            <button id="turbo-btn" class="hud-btn turbo-hud-btn" type="button">⚡ 터보 OFF</button>
+                            <button id="hud-landscape-btn" class="hud-btn landscape-hud-btn" style="display:none;">🔄</button>
+                            <button id="pause-btn" class="hud-btn" style="display:none;">⏸️</button>
+                            <button id="shop-btn" class="hud-btn" style="display:none;">🔨</button>
+                            <button id="fullscreen-btn" class="hud-btn" style="display:none;">⛶</button>
+                            <button id="bgm-btn" class="hud-btn bgm-hud-btn" type="button" aria-label="배경음악 끄기" aria-pressed="true" title="배경음악 켜기/끄기">🎵 BGM ON</button>
+                            <button id="sound-btn" class="hud-btn" type="button" aria-label="전체 사운드 켜기/끄기">🔊</button>
+                        </div>
+                    </div>
+
+                    <!-- 하단 삼형제 스킬 핫바 (키보드 1, 2, 3, 4 지원) -->
+                    <div id="skills-hotbar">
+                        <div id="skill-1" class="skill-slot">
+                            <span class="skill-key">1</span>
+                            <div class="skill-icon">🌾</div>
+                            <div id="skill-1-name" class="skill-name">짚단 굴리기</div>
+                            <span id="skill-1-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+                            <div class="skill-overlay"></div>
+                            <div class="skill-timer">0.0</div>
+                        </div>
+                        <div id="skill-2" class="skill-slot">
+                            <span class="skill-key">2</span>
+                            <div class="skill-icon">🌰</div>
+                            <div id="skill-2-name" class="skill-name">도토리 폭격</div>
+                            <span id="skill-2-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+                            <div class="skill-overlay"></div>
+                            <div class="skill-timer">0.0</div>
+                        </div>
+                        <div id="skill-3" class="skill-slot">
+                            <span class="skill-key">3</span>
+                            <div class="skill-icon">🧱</div>
+                            <div id="skill-3-name" class="skill-name">수리 & 솥</div>
+                            <span id="skill-3-combo-tag" class="skill-combo-tag hidden">✨연계 1</span>
+                            <div class="skill-overlay"></div>
+                            <div class="skill-timer">0.0</div>
+                        </div>
+                        <div id="skill-4" class="skill-slot ultimate-slot">
+                            <span class="skill-key">4</span>
+                            <div class="skill-icon">🌪️</div>
+                            <div id="skill-4-name" class="skill-name">대회오리</div>
+                            <div class="skill-overlay"></div>
+                            <div class="skill-timer">0.0</div>
+                        </div>
+                    </div>
+
+                    <button id="quick-turbo-btn" class="quick-turbo-btn" style="display:none;">
+                        <span class="turbo-icon">⚡</span>
+                        <span class="turbo-label">터보 OFF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 모니터 하단 빠른 정보 & 샌드박스 유틸리티 툴바 -->
+            <div class="screen-subbar">
+                <div class="subbar-info">
+                    <span class="subbar-badge">🎮 실시간 샌드박스 화면</span>
+                    <span style="font-size: 11.5px; color: #94a3b8;">우측 패널의 스킬 및 늑대 버튼을 누르면 이 화면에서 즉시 발동됩니다!</span>
+                </div>
+                <div class="subbar-actions">
+                    <button class="subbar-btn" onclick="clearAllWolves()">🧹 전장 늑대 소멸</button>
+                    <button class="subbar-btn" onclick="healHouse()">💖 집 내구도 회복</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 우측: 모든 스킬 및 늑대 컨트롤 패널 (스크롤 가능) -->
+        <div class="studio-controls-col">
+            <div class="dashboard-wrapper">
+
+        <!-- 1. 첫째 돼지 스킬 (짚의 명인) -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #fbbf24;">🌾 첫째 돼지 [짚의 명인] 스킬 & 콤보</div>
+                <div class="section-desc">적을 밀어내며 돌진하는 거대 짚단 굴리기 및 화염/황금 가시 장판</div>
+            </div>
+            <div class="btn-grid">
+                <button class="skill-btn btn-straw" onclick="triggerSkill1(1, 0)">
+                    <div class="btn-title">🌾 1성: 거대 짚단 굴리기</div>
+                    <div class="btn-sub">기본 짚단 굴림 (35+ 대미지)</div>
+                </button>
+                <button class="skill-btn btn-straw" onclick="triggerSkill1(2, 0)">
+                    <div class="btn-title">🔥 2성: 불타는 짚단</div>
+                    <div class="btn-sub">화염 짚단 (75+ 대미지, 속도 증가)</div>
+                </button>
+                <button class="skill-btn btn-straw" onclick="triggerSkill1(3, 0)">
+                    <div class="btn-title">👑 3성: 황금 태풍 짚단</div>
+                    <div class="btn-sub">황금 짚단 더블 롤링 (130+ dmg x2)</div>
+                </button>
+                <button class="skill-btn btn-straw" onclick="triggerSkill1(3, 1)">
+                    <div class="btn-title">🌋 콤보 1: 화염 가시 장판</div>
+                    <div class="btn-sub">짚단 궤적에 화염 장판 잔류 (4초)</div>
+                </button>
+                <button class="skill-btn btn-straw" onclick="triggerSkill1(3, 2)">
+                    <div class="btn-title">✨ 콤보 2: 황금 가시밭</div>
+                    <div class="btn-sub">초광역 황금 가시 장판 잔류 (8초)</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. 둘째 돼지 스킬 (도토리 명사수) -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #f87171;">🌰 둘째 돼지 [도토리 명사수] 스킬 & 콤보</div>
+                <div class="section-desc">광역 투하 폭격, 공중 풍선/우산 격추, 전체 기절 및 유황 지뢰</div>
+            </div>
+            <div class="btn-grid">
+                <button class="skill-btn btn-bomb" onclick="triggerSkill2(1, 0)">
+                    <div class="btn-title">🌰 1성: 도토리 폭탄 (5발)</div>
+                    <div class="btn-sub">전방 5발 광역 폭격 (50+ dmg)</div>
+                </button>
+                <button class="skill-btn btn-bomb" onclick="triggerSkill2(2, 0)">
+                    <div class="btn-title">🧨 2성: 다이너마이트 (7발)</div>
+                    <div class="btn-sub">7발 폭격 + 공중격추 + 지원사격 3발</div>
+                </button>
+                <button class="skill-btn btn-bomb" onclick="triggerSkill2(3, 0)">
+                    <div class="btn-title">🚀 3성: 핵도토리 융단폭격</div>
+                    <div class="btn-sub">10발 핵폭격 + 전체 적 2.2초 기절</div>
+                </button>
+                <button class="skill-btn btn-bomb" onclick="triggerSkill2(3, 1)">
+                    <div class="btn-title">💥 콤보 1: 2차 유탄 클러스터</div>
+                    <div class="btn-sub">착탄 시 5발 유탄 사방 비산 폭발</div>
+                </button>
+                <button class="skill-btn btn-bomb" onclick="triggerSkill2(3, 2)">
+                    <div class="btn-title">💣 콤보 2: 바닥 유황 지뢰 3개</div>
+                    <div class="btn-sub">적 접근 시 공중 폭발 지뢰 매설</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. 셋째 돼지 스킬 (벽돌 마스터) -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #34d399;">🧱 셋째 돼지 [벽돌 마스터] 스킬 & 콤보</div>
+                <div class="section-desc">성벽 수리, 대공 요격 방공망, 증기 충격파 넉백 및 용암 대공포</div>
+            </div>
+            <div class="btn-grid">
+                <button class="skill-btn btn-brick" onclick="triggerSkill3(1, 0)">
+                    <div class="btn-title">🧱 1성: 집 수리 & 가마솥</div>
+                    <div class="btn-sub">체력 +40% 회복 & 기름 가마솥 활성화</div>
+                </button>
+                <button class="skill-btn btn-brick" onclick="triggerSkill3(2, 0)">
+                    <div class="btn-title">🎯 2성: 대공 요격포 일제사격</div>
+                    <div class="btn-sub">하늘 공중늑대 전원 격추 or 유성 3발</div>
+                </button>
+                <button class="skill-btn btn-brick" onclick="triggerSkill3(2, 1)">
+                    <div class="btn-title">♨️ 콤보 1: 요새 고압 증기</div>
+                    <div class="btn-sub">고압 증기 넉백 + 사격속도 +50% 버프</div>
+                </button>
+                <button class="skill-btn btn-brick" onclick="triggerSkill3(2, 2)">
+                    <div class="btn-title">⚡ 콤보 2: 플라즈마 & 용암포</div>
+                    <div class="btn-sub">광역 스턴 + 용암포 3발 + 5초 무적</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. 궁극기 & 특수 각성 & 도토리 사격 -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #38bdf8;">🌪️ 전설의 궁극기 & 특수 각성 & 도토리 사격</div>
+                <div class="section-desc">시네마틱 컷인 회오리 폭풍, 천벌의 벼락, 무적 방어막 및 사격 모드</div>
+            </div>
+            <div class="btn-grid">
+                <button class="skill-btn btn-ultimate" onclick="triggerUltimate()" style="grid-column: span 2;">
+                    <div class="btn-title">🌪️ [전설 궁극기] 천지개벽 대회오리 폭풍 발사!</div>
+                    <div class="btn-sub">45프레임 컷인 배너 연출 + 화면 관통 초거대 폭풍 + 늑대 전원 360도 공중 회전 비행!</div>
+                </button>
+                <button class="skill-btn btn-special" onclick="triggerDivineLightning()">
+                    <div class="btn-title">⚡ 천벌의 벼락 강타</div>
+                    <div class="btn-sub">스탯 ALL MAX 신성 번개 (850+ dmg)</div>
+                </button>
+                <button class="skill-btn btn-special" onclick="triggerShield()">
+                    <div class="btn-title">🛡️ 5초 무적 방어막</div>
+                    <div class="btn-sub">모든 늑대 공격 완전 튕겨냄</div>
+                </button>
+                <button class="skill-btn btn-special" onclick="toggleTurbo()">
+                    <div class="btn-title" id="preview-turbo-title">⚡ 퀵 터보 연사: OFF</div>
+                    <div class="btn-sub">도토리 무한 자동 고속 발사</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. 늑대 소환 & 테스트 패널 (신규 늑대 3종 포함 총 10종!) -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #facc15;">🐺 적 늑대 군단 소환 & 피격 테스트 (10종 완벽 지원)</div>
+                <div class="section-desc">신규 늑대 3종(양철 방패, 우산 공수, 미니) 및 기존 늑대들을 소환하여 스킬 피격을 시험하세요.</div>
+            </div>
+            <div class="btn-grid">
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('normal')">
+                    <div class="btn-title">🐺 일반 늑대 (Normal)</div>
+                    <div class="btn-sub">사족보행 일반 늑대 소환</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('skater')">
+                    <div class="btn-title">🛹 스케이트 늑대 (Skater)</div>
+                    <div class="btn-sub">스케이트보드 고속 돌격 늑대</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('granny')">
+                    <div class="btn-title">👵 할머니 늑대 (Granny)</div>
+                    <div class="btn-sub">변장 위장 늑대 소환</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('balloon')">
+                    <div class="btn-title">🎈 풍선 폭격수 (Balloon)</div>
+                    <div class="btn-sub">공중 비행 (공증 70% 상향 적용)</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('blower')">
+                    <div class="btn-title">💨 바람 늑대 (Blower)</div>
+                    <div class="btn-sub">60% 지점 정지 & 원거리 돌풍 포격</div>
+                </button>
+                <button class="skill-btn btn-new-wolf" onclick="spawnEnemy('shield')">
+                    <div class="btn-title">🛡️ 양철 방패 늑대 <span class="new-tag">NEW</span></div>
+                    <div class="btn-sub">방패 내구도 95, 도탄 & 방패 박살</div>
+                </button>
+                <button class="skill-btn btn-new-wolf" onclick="spawnEnemy('umbrella')">
+                    <div class="btn-title">☂️ 우산 공수 늑대 <span class="new-tag">NEW</span></div>
+                    <div class="btn-sub">공중 활강 & 미니 투하 & 우산 격추</div>
+                </button>
+                <button class="skill-btn btn-new-wolf" onclick="spawnEnemy('miniwolf')">
+                    <div class="btn-title">🪂 미니 새끼 늑대 <span class="new-tag">NEW</span></div>
+                    <div class="btn-sub">낙하산 사뿐 강하 & 고속 뜀박질</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('midboss')">
+                    <div class="btn-title">🐺 선봉 돌격대장 (중간보스)</div>
+                    <div class="btn-sub">흑기사 판금 & 회전 도끼 투척</div>
+                </button>
+                <button class="skill-btn btn-wolf" onclick="spawnEnemy('boss')">
+                    <div class="btn-title">👑 빅 배드 울프 제왕 (보스)</div>
+                    <div class="btn-sub">레이저 포효 & 바위 투척 & 제왕</div>
+                </button>
+                <button class="skill-btn btn-danger" onclick="spawnAllWolves()">
+                    <div class="btn-title">💥 늑대 군단 10종 총출동!</div>
+                    <div class="btn-sub">10종 전원 동시 소환 대격돌</div>
+                </button>
+                <button class="skill-btn btn-danger" onclick="clearAllWolves()">
+                    <div class="btn-title">🧹 전장 늑대 모두 제거</div>
+                    <div class="btn-sub">소환된 모든 적 즉시 소멸</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 6. 전장 환경 및 샌드박스 유틸리티 설정 -->
+        <div class="control-section">
+            <div class="section-header">
+                <div class="section-title" style="color: #60a5fa;">🏡 전장 환경 & 샌드박스 유틸리티 설정</div>
+                <div class="section-desc">집 신축 티어 변경, 슬로우 모션 감상 배속 및 쿨타임 제어</div>
+            </div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+                <div>
+                    <span style="font-size: 12px; color: #94a3b8; margin-right: 6px;">신축 집 티어:</span>
+                    <span class="option-pills">
+                        <button class="pill-btn active" id="house-tier-1-btn" onclick="setHouseTier(1)">🌾 1티어 따뜻한 짚집</button>
+                        <button class="pill-btn" id="house-tier-2-btn" onclick="setHouseTier(2)">🪵 2티어 아늑한 통나무집</button>
+                        <button class="pill-btn" id="house-tier-3-btn" onclick="setHouseTier(3)">🏰 3티어 콘크리트 성채</button>
+                    </span>
+                </div>
+                <div>
+                    <span style="font-size: 12px; color: #94a3b8; margin-right: 6px;">재생 속도:</span>
+                    <span class="option-pills">
+                        <button class="pill-btn" id="speed-05-btn" onclick="setSpeed(0.5)">0.5x 슬로우 (스킬 감상용)</button>
+                        <button class="pill-btn active" id="speed-10-btn" onclick="setSpeed(1.0)">1.0x 표준</button>
+                        <button class="pill-btn" id="speed-20-btn" onclick="setSpeed(2.0)">2.0x 쾌속</button>
+                    </span>
+                </div>
+                <div>
+                    <span class="option-pills">
+                        <button class="pill-btn" onclick="healHouse()">💖 집 내구도 100% 회복</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 스킬 메커니즘 상세 가이드 -->
+        <div class="guide-card">
+            <h3>📖 스킬 연계 메커니즘 및 늑대 공략 요령</h3>
+            <p>
+                • <strong>첫째 돼지 (짚의 명인)</strong>: 짚단은 모든 지상 적을 넉백시키며 관통합니다. 콤보 2단계의 황금 가시밭은 8초간 바닥에 지속 대미지를 가해 물량 공세를 차단합니다.<br>
+                • <strong>둘째 돼지 (도토리 명사수)</strong>: 2성 이상 폭격은 공중 비행 늑대(풍선/우산)를 즉시 격추시키며, 3성 핵도토리는 화면 전체 2.2초 기절을 부여합니다. 콤보 유황 지뢰는 밟는 즉시 공중 폭발합니다.<br>
+                • <strong>셋째 돼지 (벽돌 마스터)</strong>: 2단계 대공 요격포는 화면 내 모든 공중 늑대를 자동 타겟팅하여 격추하며, 공중 적이 없으면 지상으로 유성포격을 발사하고 8초간 자동 방공망을 유지합니다.<br>
+                • <strong>전설의 궁극기</strong>: 화면 가로폭을 가로지르는 360px 초대형 회오리로, 보스를 포함한 모든 늑대를 공중으로 띄워 360도 회전 비행시키며 날려버립니다.<br>
+                • <strong>신규 늑대 3종</strong>: 양철 방패 늑대는 95의 방패 내구도로 전면 사격을 튕겨내며, 우산 늑대는 공중에서 미니 늑대를 투하합니다. 대공포나 다이너마이트로 우산을 격추할 수 있습니다.
+            </p>
+        </div>
+
+        </div> <!-- .dashboard-wrapper -->
+    </div> <!-- .studio-controls-col -->
+</div> <!-- .studio-layout -->
+    <div style="display: none;" id="dummy-modals-container">
+        <div id="start-modal"></div>
+        <div id="tab-start-play-btn"></div>
+        <div id="tab-start-pigs-btn"></div>
+        <div id="tab-start-meta-btn"></div>
+        <div id="tab-start-play-content"></div>
+        <div id="start-landscape-btn"></div>
+        <div id="diff-card-easy"></div>
+        <div id="diff-card-normal"></div>
+        <div id="diff-card-hard"></div>
+        <div id="diff-card-endless"></div>
+        <div id="asset-preload-container"></div>
+        <div id="preload-status-text"></div>
+        <div id="preload-percent-text"></div>
+        <div id="preload-bar-fill"></div>
+        <div id="start-btn"></div>
+        <div id="tab-start-pigs-content"></div>
+        <div id="tab-start-meta-content"></div>
+        <div id="menu-bank-gold"></div>
+        <div id="menu-gold-bonus"></div>
+        <div id="meta-invest-all-btn"></div>
+        <div id="meta-test-add-gold-btn"></div>
+        <div id="meta-test-add-10k-btn"></div>
+        <div id="meta-test-add-1m-btn"></div>
+        <div id="meta-test-add-100m-btn"></div>
+        <div id="meta-test-clear-100w-btn"></div>
+        <div id="meta-test-max-all-btn"></div>
+        <div id="menu-knockback-box"></div>
+        <div id="menu-knockback-val"></div>
+        <div id="menu-knockback-effect-text"></div>
+        <div id="menu-buy-knockback-btn"></div>
+        <div id="menu-ultimate-box"></div>
+        <div id="menu-ultimate-badge"></div>
+        <div id="menu-max-check"></div>
+        <div id="menu-coin-check"></div>
+        <div id="menu-buy-ultimate-btn"></div>
+        <div id="menu-endless-dmg-box"></div>
+        <div id="menu-endless-dmg-val"></div>
+        <div id="meta-endless-dmg-all-btn"></div>
+        <div id="menu-titles-shop-box"></div>
+        <div id="menu-current-title-badge"></div>
+        <div id="titles-cards-container"></div>
+        <div id="shop-modal"></div>
+        <div id="shop-gold-text"></div>
+        <div id="shop-test-add-gold-btn"></div>
+        <div id="shop-test-max-stats-btn"></div>
+        <div id="shop-test-max-pigs-btn"></div>
+        <div id="tab-house-btn"></div>
+        <div id="tab-pigs-btn"></div>
+        <div id="shop-tab-house-content"></div>
+        <div id="evolve-title"></div>
+        <div id="evolve-desc"></div>
+        <div id="evolve-house-btn"></div>
+        <div id="upg-damage"></div>
+        <div id="upg-speed"></div>
+        <div id="upg-cd"></div>
+        <div id="upg-repair"></div>
+        <div id="shop-tab-pigs-content"></div>
+        <div id="pig-card-1"></div>
+        <div id="pig-1-badge"></div>
+        <div id="pig-1-desc"></div>
+        <div id="pig-1-next"></div>
+        <div id="pig-1-upg-btn"></div>
+        <div id="pig-1-combo-row"></div>
+        <div id="pig-1-combo-badge"></div>
+        <div id="pig-1-combo-title"></div>
+        <div id="pig-1-combo-desc"></div>
+        <div id="pig-1-combo-btn"></div>
+        <div id="pig-card-2"></div>
+        <div id="pig-2-badge"></div>
+        <div id="pig-2-desc"></div>
+        <div id="pig-2-next"></div>
+        <div id="pig-2-upg-btn"></div>
+        <div id="pig-2-combo-row"></div>
+        <div id="pig-2-combo-badge"></div>
+        <div id="pig-2-combo-title"></div>
+        <div id="pig-2-combo-desc"></div>
+        <div id="pig-2-combo-btn"></div>
+        <div id="pig-card-3"></div>
+        <div id="pig-3-badge"></div>
+        <div id="pig-3-desc"></div>
+        <div id="pig-3-next"></div>
+        <div id="pig-3-upg-btn"></div>
+        <div id="pig-3-combo-row"></div>
+        <div id="pig-3-combo-badge"></div>
+        <div id="pig-3-combo-title"></div>
+        <div id="pig-3-combo-desc"></div>
+        <div id="pig-3-combo-btn"></div>
+        <div id="shop-all-max-box"></div>
+        <div id="shop-meta-invest-btn"></div>
+        <div id="shop-knockback-invest-btn"></div>
+        <div id="shop-bank-deposit-btn"></div>
+        <div id="shop-ultimate-status-box"></div>
+        <div id="shop-ultimate-badge"></div>
+        <div id="shop-ultimate-status-text"></div>
+        <div id="shop-ultimate-coin-count"></div>
+        <div id="shop-buy-ultimate-btn"></div>
+        <div id="close-shop-btn"></div>
+        <div id="ending-modal"></div>
+        <div id="ending-badge"></div>
+        <div id="ending-modal-title"></div>
+        <div id="ending-anim-frame"></div>
+        <div id="ending-desc-text"></div>
+        <div id="ending-diff-name"></div>
+        <div id="ending-score-text"></div>
+        <div id="ending-rank-row"></div>
+        <div id="ending-unlock-notice"></div>
+        <div id="ending-gold-saved-box"></div>
+        <div id="ending-saved-gold-val"></div>
+        <div id="ending-menu-btn"></div>
+        <div id="next-diff-btn"></div>
+        <div id="endless-btn"></div>
+        <div id="gameover-modal"></div>
+        <div id="gameover-score-text"></div>
+        <div id="gameover-gold-saved-box"></div>
+        <div id="gameover-bonus-val"></div>
+        <div id="retry-btn"></div>
+        <div id="gameover-menu-btn"></div>
+        <div id="pause-modal"></div>
+        <div id="resume-btn"></div>
+        <div id="pause-landscape-btn"></div>
+        <div id="pause-shop-btn"></div>
+        <div id="pause-menu-btn"></div>
+        <div id="orientation-guide-modal"></div>
+        <div id="guide-confirm-btn"></div>
+    </div>
+
+    <!-- 핵심 모듈 로드 -->
+    <script src="constants.js"></script>
+    <script src="assets.js"></script>
+    <script src="performance.js"></script>
+    <script src="music.js"></script>
+    <script src="audio.js"></script>
+    <script src="pig_sprites.js"></script>
+    <script src="wolf_sprites.js"></script>
+    <script src="background.js"></script>
+    <script src="house.js"></script>
+    <script src="enemies.js"></script>
+    <script src="effects.js"></script>
+    <script src="game.js"></script>
+
+    <!-- 샌드박스 인터랙티브 제어 스크립트 -->
+    <script>
+        window.addEventListener('load', () => {
+            if (window.game) {
+                // 게임을 즉시 PLAYING 모드로 활성화
+                window.game.state = GameState.PLAYING;
+                window.game.wave = 1;
+                window.game.waveInProgress = false;
+                window.game.waveTransitionTimer = 999999999;
+                window.game.waveEnemiesToSpawn = []; // 자동 웨이브 스폰 비활성화 (버튼 수동 소환)
+                window.game.bossSpawned = false;
+                window.game.floatingTexts = [];
+                window.game.gold = 99999;
+                window.game.ultimateUnlocked = true;
+                window.game.everMaxedAll = true;
+
+                // 기본 쿨타임 무제한 설정
+                window.game.infiniteCooldown = true;
+
+                // 속도 스케일링 래퍼
+                window.previewSpeed = 1.0;
+                const origUpdate = window.game.update.bind(window.game);
+                window.game.update = function(dt) {
+                    // 쿨다운 무제한 유지
+                    if (this.infiniteCooldown && this.skills) {
+                        for (let s in this.skills) {
+                            this.skills[s].currentCd = 0;
+                        }
+                    }
+                    // 자동 웨이브 스폰 및 전환 억제 유지 (독립 샌드박스 상태 유지)
+                    this.waveInProgress = false;
+                    this.waveTransitionTimer = 999999999;
+                    this.waveEnemiesToSpawn = [];
+
+                    origUpdate(dt * (window.previewSpeed || 1.0));
+                };
+
+                window.game.showBanner("✨ 스킬 & 전투 샌드박스 준비 완료! 원하는 스킬과 늑대를 소환하세요.", "#38bdf8");
+            }
+        });
+
+        // 1스킬: 첫째 돼지
+        function triggerSkill1(rank, combo) {
+            if (!window.game) return;
+            window.game.pigRanks[1] = rank;
+            window.game.pigComboSkills[1] = combo;
+            window.game.skills[1].currentCd = 0;
+            window.game.useSkill(1);
+        }
+
+        // 2스킬: 둘째 돼지
+        function triggerSkill2(rank, combo) {
+            if (!window.game) return;
+            window.game.pigRanks[2] = rank;
+            window.game.pigComboSkills[2] = combo;
+            window.game._lastMineDrop = 0; // 콤보 지뢰 즉시 투하 보장
+            window.game.skills[2].currentCd = 0;
+            window.game.useSkill(2);
+        }
+
+        // 3스킬: 셋째 돼지
+        function triggerSkill3(rank, combo) {
+            if (!window.game) return;
+            window.game.pigRanks[3] = rank;
+            window.game.pigComboSkills[3] = combo;
+            window.game.skills[3].currentCd = 0;
+            window.game.useSkill(3);
+        }
+
+        // 4스킬: 궁극기 (천지개벽 대회오리)
+        function triggerUltimate() {
+            if (!window.game) return;
+            window.game.ultimateUnlocked = true;
+            window.game.everMaxedAll = true;
+            window.game.skills[4].currentCd = 0;
+            window.game.useSkill(4);
+        }
+
+        // 특수: 천벌의 벼락
+        function triggerDivineLightning() {
+            if (!window.game) return;
+            const target = window.game.enemies && window.game.enemies.length > 0 ? window.game.enemies[0] : null;
+            window.game.triggerDivineLightning(target);
+            window.game.showBanner("⚡ [신성 각성] 천벌의 벼락 강타!!", "#facc15");
+        }
+
+        // 특수: 5초 무적 방어막
+        function triggerShield() {
+            if (!window.game) return;
+            window.game.house.invincibleTimer = 5000;
+            soundEngine.barrierOpen();
+            window.game.showBanner("🛡️ [벽돌 마스터] 요새 5초 무적 방어막 전개!!", "#00e5ff");
+        }
+
+        // 특수: 퀵 터보 연사 토글
+        function toggleTurbo() {
+            if (!window.game) return;
+            window.game.isTurbo = !window.game.isTurbo;
+            const titleEl = document.getElementById('preview-turbo-title');
+            if (titleEl) {
+                titleEl.textContent = window.game.isTurbo ? "⚡ 퀵 터보 연사: ON" : "⚡ 퀵 터보 연사: OFF";
+            }
+            window.game.showBanner(window.game.isTurbo ? "⚡ 도토리 자동 연속 발사 터보 ON!" : "⚡ 도토리 자동 연속 발사 터보 OFF", "#f59e0b");
+        }
+
+        // 늑대 개별 소환
+        function spawnEnemy(type) {
+            if (!window.game) return;
+            window.game.spawnEnemy(type);
+            const names = {
+                normal: '일반 늑대',
+                skater: '스케이트 늑대',
+                granny: '할머니 늑대',
+                balloon: '풍선 폭격수 늑대',
+                blower: '바람 늑대',
+                midboss: '선봉 돌격대장',
+                boss: '빅 배드 울프 제왕',
+                shield: '양철 방패 늑대',
+                umbrella: '우산 공수 늑대',
+                miniwolf: '미니 새끼 늑대'
+            };
+            window.game.showBanner(`🐺 ${names[type] || type} 소환 완료!`, "#facc15");
+        }
+
+        // 늑대 10종 총출동
+        function spawnAllWolves() {
+            if (!window.game) return;
+            const types = ['normal', 'skater', 'granny', 'balloon', 'blower', 'shield', 'umbrella', 'miniwolf', 'midboss', 'boss'];
+            types.forEach((t, idx) => {
+                setTimeout(() => {
+                    window.game.spawnEnemy(t);
+                }, idx * 120);
+            });
+            window.game.showBanner("💥 늑대 군단 10종 전원 총출동!! 전면전 발발!!", "#ef4444");
+        }
+
+        // 늑대 모두 제거
+        function clearAllWolves() {
+            if (!window.game) return;
+            window.game.enemies = [];
+            window.game.boulders = [];
+            window.game.showBanner("🧹 전장의 모든 적 소멸 완료!", "#a78bfa");
+        }
+
+        // 집 티어 전환
+        function setHouseTier(tier) {
+            if (!window.game) return;
+            window.game.house.tier = tier;
+            window.game.house.maxHp = tier === 3 ? 320 : (tier === 2 ? 220 : 150);
+            window.game.house.hp = window.game.house.maxHp;
+
+            document.querySelectorAll('[id^="house-tier-"]').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`house-tier-${tier}-btn`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const names = ['1티어 따뜻한 짚집', '2티어 아늑한 통나무집', '3티어 콘크리트/벽돌 성채'];
+            window.game.showBanner(`🏡 ${names[tier - 1]} 신축 완료!`, "#ffd700");
+        }
+
+        // 배속 조절
+        function setSpeed(speed) {
+            window.previewSpeed = speed;
+            document.querySelectorAll('[id^="speed-"]').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`speed-${speed.toString().replace('.', '')}-btn`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (window.game) {
+                window.game.showBanner(`⏱️ 재생 속도: ${speed}x 설정`, "#38bdf8");
+            }
+        }
+
+        // 집 체력 회복
+        function healHouse() {
+            if (!window.game) return;
+            window.game.house.hp = window.game.house.maxHp;
+            soundEngine.repair();
+            window.game.showBanner("💖 집 내구도 100% 완전 회복!", "#4caf50");
+        }
+    </script>
+</body>
+</html>
+

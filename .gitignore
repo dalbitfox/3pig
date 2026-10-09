@@ -1,0 +1,12 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Local settings and secrets
+.env
+.env.*
+.aws/
+.codex/
+.agents/
+node_modules/
+__pycache__/
+*.pyc
