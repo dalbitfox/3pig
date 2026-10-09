@@ -29,6 +29,7 @@ test('final boss marches 12 percent faster than midboss in all modes and endless
                 const [mid, boss] = game.enemies;
                 assert.ok(Math.abs(boss.baseSpeed / mid.baseSpeed - 1.12) < 1e-12);
                 assert.equal(boss.speed, boss.baseSpeed);
+                assert.equal(boss.y, 510);
                 assert.equal(boss.w, 218 * 1.2);
                 assert.equal(boss.h, 258 * 1.2);
             }

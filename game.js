@@ -3589,7 +3589,7 @@ class Game {
                 const cfg = this.getEndlessBossConfig(this.wave);
                 this.enemies.push(new BossWolf(
                     V_WIDTH + 80,
-                    424, // 5% 아래로 이동 (390 -> 424)
+                    510, // 확대된 최종보스의 머리·왕관이 화면 안에 들어오도록 아래로 배치
                     cfg.hp,
                     cfg.damageMul,
                     cfg.skillIgnore,
@@ -3601,7 +3601,7 @@ class Game {
             } else {
                 this.enemies.push(new BossWolf(
                     V_WIDTH + 80,
-                    424, // 5% 아래로 이동 (390 -> 424)
+                    510, // 확대된 최종보스의 머리·왕관이 화면 안에 들어오도록 아래로 배치
                     diff.bossHp,
                     diff.bossDamage,
                     diff.skillIgnoreChance,
