@@ -2449,86 +2449,107 @@ body {
     box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
 }
 
-/* 상단 정보는 글자 대신 패널/배지 단위로 줄을 바꾼다. */
-@media (max-width: 1400px), (max-height: 520px) and (orientation: landscape) {
-    #top-hud {
-        display: grid;
-        grid-template-columns: max-content minmax(0, 1fr);
-        align-items: start;
-        gap: 4px 6px;
-    }
-    #top-hud > .hud-panel {
-        min-width: 0;
-        padding: 4px 8px;
-        gap: 4px 8px;
-        border-radius: 14px;
-    }
-    #top-hud > .health-container {
-        width: auto;
-        max-width: none;
-        min-width: 0;
-        align-self: stretch;
-        justify-content: center;
-    }
-    #top-hud .health-label {
-        gap: 8px;
-        font-size: 11px;
-    }
-    #top-hud .health-label > span,
+/* 전투 시야 확보: 세 패널은 항상 한 행, 긴 문구만 패널 안에서 줄바꿈. */
+#top-hud {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.8fr) minmax(0, 2fr);
+    align-items: stretch;
+    gap: 4px;
+    top: max(3px, env(safe-area-inset-top));
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+}
+#top-hud > .hud-panel {
+    min-width: 0;
+    max-width: none;
+    padding: 3px 6px;
+    gap: 2px 5px;
+    border-width: 2px;
+    border-radius: 14px;
+    font-size: 12px;
+}
+#top-hud .health-container {
+    justify-content: center;
+}
+#top-hud .health-label {
+    width: 100%;
+    gap: 2px 5px;
+    font-size: 11px;
+    line-height: 1.15;
+}
+#top-hud .health-label > span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+#top-hud .health-label > span:first-child { flex-shrink: 0; }
+#top-hud .health-bar-bg { width: 100%; height: 9px; }
+#top-hud > .hud-panel:nth-child(2) {
+    flex-wrap: wrap;
+    align-content: center;
+}
+#top-hud .gold-badge,
+#top-hud .wave-badge {
+    min-width: 0;
+    font-size: 11px;
+    gap: 2px 4px;
+    flex-wrap: wrap;
+    line-height: 1.15;
+}
+#top-hud .gold-badge { white-space: nowrap; }
+#top-hud .wave-badge { flex: 1 1 110px; }
+#top-hud .wave-badge > span,
+#top-hud .user-title-pill,
+#top-hud .diff-badge-pill,
+#top-hud .stat-awakening-badge {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 10px;
+    padding: 1px 4px;
+    line-height: 1.15;
+}
+#top-hud > .hud-controls {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 0.65fr 1.25fr 0.65fr 1.6fr 0.65fr;
+    align-items: stretch;
+    gap: 3px;
+}
+#top-hud .hud-btn {
+    min-width: 0;
+    min-height: 30px;
+    padding: 3px 4px;
+    font-size: 11px;
+    line-height: 1.15;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    border-radius: 12px;
+}
+#top-hud .hud-btn.bgm-hud-btn { min-width: 0; }
+@media (max-width: 700px) {
+    #top-hud { gap: 2px; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 2fr); }
+    #top-hud > .hud-panel { padding: 2px 3px; gap: 2px; border-radius: 10px; }
+    #top-hud .hud-controls { gap: 2px; }
+    #top-hud .hud-btn { font-size: 10px; padding: 2px; border-width: 1px; }
+    #top-hud .health-label { font-size: 10px; flex-wrap: wrap; }
+}
+#top-hud > .hud-panel:nth-child(2) { column-gap: 4px; }
+#top-hud .wave-badge { flex-basis: 100%; }
+#top-hud .wave-badge > #wave-display { flex-shrink: 0; padding-left: 0; }
+#top-hud .stage-theme-badge { flex: 1 1 80px; }
+#top-hud .stat-awakening-badge { display: inline; animation: none; }
+#top-hud > .hud-controls {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .65fr) minmax(0, 1.25fr) minmax(0, .65fr) minmax(0, 1.6fr) minmax(0, .65fr);
+}
+@media (max-width: 450px) {
+    #top-hud .hud-btn { font-size: 8px; padding: 1px 0; }
+    #top-hud .health-label,
     #top-hud .gold-badge,
-    #top-hud .diff-badge-pill,
-    #top-hud .user-title-pill,
+    #top-hud .wave-badge,
     #top-hud .wave-badge > span,
-    #top-hud .hud-btn {
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-    #top-hud .health-bar-bg {
-        width: 100%;
-        height: 11px;
-    }
-    #top-hud > .hud-panel:nth-child(2),
-    #top-hud .wave-badge {
-        flex-wrap: wrap;
-        min-width: 0;
-    }
-    #top-hud .gold-badge,
-    #top-hud .wave-badge {
-        font-size: 12px;
-        gap: 4px 8px;
-    }
-    #top-hud .stage-theme-badge,
-    #top-hud .diff-badge-pill,
-    #top-hud .stat-awakening-badge {
-        font-size: 11px;
-        padding: 2px 6px;
-    }
-    #top-hud > .hud-controls {
-        grid-column: 1 / -1;
-        justify-self: end;
-        max-width: 100%;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-    }
-    #top-hud .hud-btn {
-        min-height: 32px;
-        padding: 4px 9px;
-        font-size: 12px;
-    }
-    #top-hud .bgm-hud-btn {
-        min-width: 100px;
-    }
+    #top-hud .diff-badge-pill { font-size: 8px; }
 }
-
-@media (max-width: 600px) {
-    #top-hud {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    #top-hud .health-label {
-        flex-wrap: wrap;
-    }
-    #top-hud > .hud-controls {
-        justify-self: stretch;
-        justify-content: center;
-    }
-}
+#top-hud .hud-btn,
+#top-hud .health-label > span,
+#top-hud .wave-badge > span { word-break: keep-all; }
